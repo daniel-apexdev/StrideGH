@@ -1,6 +1,16 @@
 # Race posters
 
-Put organiser posters and flyers here, then point the race at them in `data/events.seed.json`:
+Put organiser posters and flyers here, then add them to the race with one command (it works out the size for you):
+
+```
+npm run race:image -- western-city-run-2026 public/posters/western-city-run-2026.jpg "Western City Run poster: runners on the coastal road"
+```
+
+The first image becomes the poster at the top of the race page; later ones go into **Photos & flyers** under the race details. Add `--poster` to make a new image the poster instead (the old one moves into the photos).
+
+`npm test` checks that every image a race points at is really in this folder, so a missing file shows up before you push.
+
+Or edit `data/events.seed.json` yourself:
 
 ```json
 "poster": {
@@ -19,7 +29,7 @@ Put organiser posters and flyers here, then point the race at them in `data/even
 
 ## More than one image
 
-Extra images (medal, route map, a second flyer) go in `"gallery"`, after `"poster"`. They show as a swipeable row on the race page:
+Extra images (medal, route map, a second flyer) go in `"gallery"`, after `"poster"`. They show as a swipeable "Photos & flyers" row under the race details:
 
 ```json
 "gallery": [

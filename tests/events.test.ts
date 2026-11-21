@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import seed from "../data/events.seed.json";
 import { z } from "zod";
@@ -12,6 +14,13 @@ describe("seed data", () => {
   it("is valid and has unique slugs", () => {
     expect(events.length).toBeGreaterThan(0);
     expect(new Set(events.map((e) => e.slug)).size).toBe(events.length);
+  });
+  it("has every poster and photo file in public/", () => {
+    for (const e of events) {
+      for (const img of [...(e.poster ? [e.poster] : []), ...e.gallery]) {
+        if (img.src.startsWith("/")) expect(`${e.slug}: ${img.src}`).toBe(existsSync(join(process.cwd(), "public", img.src)) ? `${e.slug}: ${img.src}` : `${e.slug}: missing public${img.src}`);
+      }
+    }
   });
   it("ends each slug with the race's year when it has one, so editions link up", () => {
     for (const e of events) {

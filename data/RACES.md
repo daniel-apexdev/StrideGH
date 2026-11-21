@@ -34,7 +34,9 @@ The fields that matter most:
   or `"none"` if it isn't open yet.
 - `distances`: one entry per distance. `category` is `5K`, `10K`, `Half`, `Marathon` or `Other`;
   `priceMinor` is the fee in pesewas (GHS 150 → `15000`), `0` for free, `null` if not published.
-- `poster` and `gallery`: see [public/posters/README.md](../public/posters/README.md).
+- `poster` and `gallery`: save the image in `public/posters/`, then run
+  `npm run race:image -- <slug> public/posters/<file> "<what the image shows>"`.
+  See [public/posters/README.md](../public/posters/README.md).
 
 Then run `npm test`. It checks every race and tells you the field name if something's wrong.
 

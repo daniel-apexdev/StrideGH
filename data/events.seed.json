@@ -227,23 +227,43 @@
     "slug": "gold-coast-run-2026",
     "name": "Gold Coast Run",
     "date": "2026-11-28",
-    "startTime": null,
-    "region": null,
-    "city": null,
-    "venue": null,
-    "organiser": null,
+    "startTime": "06:30",
+    "region": "Greater Accra",
+    "city": "Accra",
+    "venue": "Athletic Oval, University of Ghana, Legon",
+    "organiser": "Gold Coast Sporting Events Ltd",
     "feeSummary": "GHS 120–150",
     "feeKind": "paid",
     "currency": "GHS",
-    "registration": { "method": "url", "url": "http://goldcoastrun.com", "note": null },
-    "highlights": ["2nd edition", "Limited to 800 slots", "Race kit and a medal included", "Updates on Instagram: @goldcoastrun"],
+    "registration": {
+      "method": "url",
+      "url": "https://goldcoastrun.com/events/gold-coast-run?shared=1",
+      "note": "Both distances were showing as sold out on the official page on 21 November 2026."
+    },
+    "highlights": [
+      "2nd edition, about 800 runners registered",
+      "Start and finish at the Athletic Oval, University of Ghana",
+      "Race kit and a medal for every finisher",
+      "Vendor booths and sponsor activations on race day",
+      "Updates on Instagram: @goldcoastrun"
+    ],
     "walkerFriendly": true,
-    "verification": "unverified",
-    "verifiedAt": null,
+    "verification": "verified",
+    "verifiedAt": "2026-11-21T21:00:00Z",
     "coverColor": "#0e3b2c",
     "distances": [
-      { "label": "5K", "category": "5K", "priceMinor": 12000, "note": null },
-      { "label": "10K", "category": "10K", "priceMinor": 15000, "note": null }
+      {
+        "label": "5K",
+        "category": "5K",
+        "priceMinor": 12000,
+        "note": "Sold out"
+      },
+      {
+        "label": "10K",
+        "category": "10K",
+        "priceMinor": 15000,
+        "note": "Sold out"
+      }
     ]
   },
   {
@@ -327,22 +347,42 @@
     "name": "Millennium Night Run",
     "date": "2026-12-12",
     "startTime": null,
-    "region": null,
-    "city": null,
-    "venue": null,
+    "region": "Greater Accra",
+    "city": "Accra",
+    "venue": "El-Wak Sports Stadium, Cantonments",
     "organiser": "Millennium Marathon",
-    "feeSummary": "GHS 150–200",
+    "feeSummary": "GHS 180–230",
     "feeKind": "paid",
     "currency": "GHS",
-    "registration": { "method": "url", "url": "https://millenniummarathon.com/millennium-night-run/", "note": null },
-    "highlights": ["Race kit and a medal included"],
+    "registration": {
+      "method": "url",
+      "url": "https://millenniummarathon.com/night-race-auth/",
+      "note": "A night race: the official page says it starts as the sun goes down but also lists 6:00 AM, so check the start time with the organiser (info@millenniummarathon.com, +233 25 612 2968). Race packs: Saturday 5 December, 5–8 PM at My Noodles Café, with a pasta party."
+    },
+    "highlights": [
+      "2nd edition, about 2,000 runners expected",
+      "Start and finish at El-Wak Stadium; 5K is open to walkers",
+      "Lit-up route with live DJs and entertainment zones",
+      "Medal for every finisher, plus an after-party",
+      "VIP package available"
+    ],
     "walkerFriendly": true,
-    "verification": "unverified",
-    "verifiedAt": null,
+    "verification": "verified",
+    "verifiedAt": "2026-11-21T21:00:00Z",
     "coverColor": "#111714",
     "distances": [
-      { "label": "5K", "category": "5K", "priceMinor": 15000, "note": null },
-      { "label": "10K", "category": "10K", "priceMinor": 20000, "note": null }
+      {
+        "label": "5K",
+        "category": "5K",
+        "priceMinor": 18000,
+        "note": "GHS 280 for non-Ghanaian runners"
+      },
+      {
+        "label": "10K",
+        "category": "10K",
+        "priceMinor": 23000,
+        "note": "GHS 380 for non-Ghanaian runners"
+      }
     ]
   },
   {
@@ -354,14 +394,22 @@
     "city": "Accra",
     "venue": "University of Ghana Rugby Stadium, Legon",
     "organiser": "The Runner Alliance",
-    "feeSummary": "GHS 175–700",
+    "feeSummary": "GHS 160–750",
     "feeKind": "paid",
     "currency": "GHS",
-    "registration": { "method": "url", "url": "https://whatwhenwhere.social/events/86d96f5c-0deb-4de4-9723-ec0e2f652583", "note": "You can also register by dialling *415*281*0# (from the organiser's poster)." },
-    "highlights": ["Entry from GHS 175 to GHS 700 depending on package", "Medal and refreshment included"],
+    "registration": {
+      "method": "url",
+      "url": "https://whatwhenwhere.social/events/86d96f5c-0deb-4de4-9723-ec0e2f652583",
+      "note": "You can also register by dialling *415*281*0# (from the organiser's poster)."
+    },
+    "highlights": [
+      "Runners do 12 km (a kilometre for each month), walkers 6 km, and everyone finishes together",
+      "Tickets: Lite GHS 160, General GHS 190, Virtual GHS 180",
+      "Packages with breakfast and/or wellness GHS 310–575; VIR GHS 750"
+    ],
     "walkerFriendly": true,
-    "verification": "unverified",
-    "verifiedAt": null,
+    "verification": "verified",
+    "verifiedAt": "2026-11-21T21:00:00Z",
     "coverColor": "#14503c",
     "poster": {
       "src": "/posters/final-lap-2026.jpg",
@@ -370,8 +418,18 @@
       "alt": "Final Lap 2026 poster by The Runner Alliance: runners on a shaded road and two gold medals. Saturday 19 December 2026, 6:00 AM, University of Ghana Rugby Stadium. 6K and 12K. Dial *415*281*0# to register."
     },
     "distances": [
-      { "label": "6 km walk", "category": "Other", "priceMinor": null, "note": null },
-      { "label": "12 km run", "category": "Other", "priceMinor": null, "note": null }
+      {
+        "label": "6 km walk",
+        "category": "Other",
+        "priceMinor": 19000,
+        "note": "General Admission; Lite GHS 160, packages up to GHS 750"
+      },
+      {
+        "label": "12 km run",
+        "category": "Other",
+        "priceMinor": 19000,
+        "note": "General Admission; Lite GHS 160, packages up to GHS 750"
+      }
     ]
   },
   {
