@@ -1,0 +1,60 @@
+# Publishes the website to GitHub Pages.
+# One-time setup: repo Settings → Pages → Build and deployment → Source: "GitHub Actions".
+# Then every push to main (new races in data/events.seed.json, shops in data/stores.seed.json,
+# posters in public/posters, shop photos in public/stores…) rebuilds and republishes the site.
+name: Deploy website to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["mobile/**", "**/*.md"]
+  # Rebuild every morning so "In 3 days", "Registration closes" and past races stay current.
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Build static site
+        run: npm run build:pages
+        env:
+          # "/repo-name" for username.github.io/repo-name, empty for a custom domain.
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          # Optional: where organisers email new races. Set under Settings → Secrets and variables → Actions → Variables.
+          NEXT_PUBLIC_CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
+          # Optional: website accounts (Supabase → Project Settings → API). The anon key is meant to be public.
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
