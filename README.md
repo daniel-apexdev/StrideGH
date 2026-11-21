@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Stride GH
 
 Find road races across Ghana and running gear from local shops. Mobile-first web app.
@@ -73,6 +72,31 @@ There are no emails yet: contact organisers from the review page (email, call or
 
 ## Accounts and email codes
 
+### On the website (works on GitHub Pages)
+
+The website's **Account** page (`/account`, the person icon in the header) uses Supabase Auth, so it works on the static GitHub Pages site too: the visitor's browser talks to Supabase directly, and Supabase emails the code. Name and phone are kept on the Supabase user (no tables needed). Until it's set up, the page says accounts are coming soon.
+
+One-time setup (about 15 minutes):
+
+1. Create a free project at <https://supabase.com> (region: EU West is closest to Ghana).
+2. **Send codes, not links.** Supabase → **Authentication → Emails → Templates**. In both **Confirm signup** and **Magic link**, replace the body with something like:
+
+   ```html
+   <h2>Your Stride GH code</h2>
+   <p>Enter this code to continue: <strong style="font-size:24px;letter-spacing:4px">{{ .Token }}</strong></p>
+   <p>It works for 1 hour. If you didn't ask for it, ignore this email.</p>
+   ```
+   Subjects: "Your Stride GH code".
+3. **Send from your Gmail.** Supabase's built-in email only reaches your own team's addresses, so real visitors need your own sender. **Authentication → Emails → SMTP Settings → Enable custom SMTP**: host `smtp.gmail.com`, port `465`, username = your Gmail address, password = your Gmail **App Password** (the same one in `.env.local`), sender = your Gmail address, sender name `Stride GH`. You type the password into Supabase's dashboard; it never goes in the repo.
+4. **Authentication → URL Configuration → Site URL:** `https://<your-username>.github.io/<repo-name>/`.
+5. **Project Settings → API:** copy the **Project URL** and the **anon public** key.
+   - On your computer: put them in `.env.local` as `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`, then restart `npm run dev`.
+   - For GitHub Pages: **Settings → Secrets and variables → Actions → Variables**, add `SUPABASE_URL` and `SUPABASE_ANON_KEY`, then re-run the deploy. (The anon key is designed to be public; the service role key is not and never goes here.)
+
+Adding these keys does **not** move your races and shops into Supabase: they keep coming from `data/*.seed.json` unless you also set `DATA_SOURCE=supabase` (see "Connect Supabase" below).
+
+### In the phone app
+
 The app's *Create account* and *Sign in* screens talk to the website's API (`/api/auth/start`, `/api/auth/verify`, `/api/auth/me`, `/api/auth/signout`). `SESSION_SECRET` in `.env.local` is required.
 
 How it behaves: codes are 6 digits, last 10 minutes, and work once. After 5 wrong tries the code is locked and a new one is needed. A new code can be requested after 30 seconds, up to 5 an hour per email. Only a hash of each code and each session is stored. A phone stays signed in for 90 days, until *Sign out of this phone*.
@@ -124,7 +148,7 @@ The repo includes `.github/workflows/deploy-pages.yml`, which builds the public 
 
 1. Push the project to GitHub (`.env.local` and `data/local/` are in `.gitignore`, so your passwords and admin data stay on your computer).
 2. On GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-3. Optional: **Settings → Secrets and variables → Actions → Variables → New repository variable** named `CONTACT_EMAIL` (the address organisers send new races to). Without it, organisers are asked to copy the details and email them.
+3. Optional: **Settings → Secrets and variables → Actions → Variables → New repository variable** named `CONTACT_EMAIL` (the address organisers send new races to). Without it, organisers are asked to copy the details and email them. Add `SUPABASE_URL` and `SUPABASE_ANON_KEY` here too to turn on website accounts (see "Accounts and email codes").
 4. Push, or open the **Actions** tab and run "Deploy website to GitHub Pages". The site appears at `https://<your-username>.github.io/<repo-name>/`.
 
 **Updating races and shops:** edit, commit and push. The site rebuilds in about two minutes.
@@ -140,7 +164,7 @@ Run `npm test` before pushing: it checks the JSON files, so a typo shows up with
 
 **What's different on GitHub Pages.** Pages can only serve files, so there's no server:
 
-- The admin portal, the `/api` routes, sign-in codes and email sending aren't included.
+- The admin portal, the `/api` routes and the app's sign-in codes aren't included. Website accounts still work, through Supabase.
 - "List your race" still checks every field, then opens the organiser's email app with the details filled in (to `CONTACT_EMAIL`). You add the race to `data/events.seed.json` and push.
 - "Check a submission" tells organisers to reply to your email instead.
 - Races approved in the admin portal on your computer live in `data/local/` and are **not** published. Copy them into `data/events.seed.json` to put them on the site.
@@ -157,7 +181,7 @@ You can skip this and keep working on seed data. When you're ready:
 1. Create a free project at <https://supabase.com>. Pick the region closest to Ghana (e.g. EU West).
 2. In **SQL Editor**, run each file in `supabase/migrations/` in order (`…create_events.sql`, `…add_poster_details.sql`, `…create_submissions.sql`, `…create_accounts.sql`), then `supabase/seed.sql`.
 3. Copy `.env.example` to `.env.local` and fill in the **Project URL**, **anon public key** and **service_role key** from **Project Settings → API**. The service role key is what lets the admin portal save submissions and publish races.
-4. Restart `npm run dev`. Pages now read from the database. Unpublished events (status `pending`) stay hidden thanks to row-level security.
+4. Add `DATA_SOURCE=supabase` to `.env.local` and restart `npm run dev`. Pages now read races and shops from the database (without it they keep using `data/*.seed.json`, even with the keys set). Unpublished events (status `pending`) stay hidden thanks to row-level security.
 
 Never put the `service_role` key in a `NEXT_PUBLIC_` variable or commit `.env.local`.
 
@@ -202,6 +226,3 @@ Drop organiser posters into `public/posters/`, then add a `poster` entry (`src`,
 - Unknown is a valid value: "Venue not listed yet", "Fee unconfirmed", "See organiser". Don't guess.
 - Race registration and payment happen on the organiser's page. Stride GH doesn't take race-entry payments.
 - Store prices in minor units (pesewas) to avoid rounding errors.
-=======
-# StrideGH
->>>>>>> origin/main

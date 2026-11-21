@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { profileOf, useAccount } from "@/lib/accounts/use-account";
 import { useSavedEvents } from "@/lib/saved";
 import { Icon } from "./icon";
 
@@ -66,6 +67,24 @@ export function SavedLink() {
   );
 }
 
+/** Account button: the person's initials once signed in, otherwise a person icon. */
+export function AccountLink() {
+  const account = useAccount();
+  const profile = account.status === "signed-in" ? profileOf(account.user) : null;
+  const initials = profile ? (profile.name || profile.email).split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() : null;
+  return (
+    <Link
+      href="/account"
+      aria-label={profile ? `Your account (${profile.name || profile.email})` : "Sign in or create an account"}
+      className={`flex h-10 w-10 items-center justify-center rounded-full ${
+        initials ? "bg-volt text-sm font-extrabold text-night" : "border border-line hover:bg-tile"
+      }`}
+    >
+      {initials ?? <Icon name="user" size={18} />}
+    </Link>
+  );
+}
+
 /** Phone and small-tablet menu. Closes when you pick a page or press Escape. */
 export function MobileMenu() {
   const pathname = usePathname();
@@ -105,7 +124,7 @@ export function MobileMenu() {
         <div id="mobile-menu" ref={panel} className="fixed inset-x-0 top-16 z-40 border-b border-line bg-bg px-5 pb-6 pt-2 shadow-xl">
           <nav aria-label="Main">
             <ul className="flex flex-col">
-              {[{ href: "/", label: "Home" }, ...mainNav, { href: "/saved", label: "Saved races" }, { href: "/account", label: "Settings" }].map((item) => (
+              {[{ href: "/", label: "Home" }, ...mainNav, { href: "/saved", label: "Saved races" }, { href: "/account", label: "Account & settings" }].map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}

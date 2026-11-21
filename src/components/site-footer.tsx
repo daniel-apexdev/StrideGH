@@ -22,7 +22,7 @@ const columns = [
   {
     title: "Stride GH",
     links: [
-      ["/account", "Settings"],
+      ["/account", "Your account"],
       ["/events?when=past", "Past races"],
     ],
   },

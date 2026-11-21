@@ -42,6 +42,9 @@ jobs:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
           # Optional: where organisers email new races. Set under Settings → Secrets and variables → Actions → Variables.
           NEXT_PUBLIC_CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
+          # Optional: website accounts (Supabase → Project Settings → API). The anon key is meant to be public.
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: out

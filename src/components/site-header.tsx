@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { Icon } from "./icon";
-import { MobileMenu, NavLinks, NavLinksLive, SavedLink } from "./site-nav";
+import { AccountLink, MobileMenu, NavLinks, NavLinksLive, SavedLink } from "./site-nav";
 import { ThemeToggle } from "./theme-toggle";
 
 export function Wordmark({ className = "" }: { className?: string }) {
   return (
-    <span className={`flex items-center gap-2.5 font-display text-[26px] font-extrabold leading-none tracking-wide ${className}`}>
+    <span className={`flex items-center gap-2.5 font-display font-extrabold leading-none tracking-wide ${className}`}>
       <LogoMark />
       <span>
         STRIDE<span className="ml-[3px] bg-volt px-[5px] text-night">GH</span>
@@ -34,7 +34,7 @@ export function SiteHeader() {
     <header className="site-header sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur supports-[backdrop-filter]:bg-bg/75">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-5 md:px-8">
         <Link href="/" aria-label="Stride GH home" className="shrink-0">
-          <Wordmark />
+          <Wordmark className="text-[22px] min-[360px]:text-[26px]" />
         </Link>
         <Suspense fallback={<NavLinks pathname={null} />}>
           <NavLinksLive />
@@ -49,7 +49,11 @@ export function SiteHeader() {
             Search races
           </Link>
           <SavedLink />
-          <ThemeToggle tone="plain" />
+          {/* On small phones the theme switch is on the Account page instead. */}
+          <span className="hidden sm:contents">
+            <ThemeToggle tone="plain" />
+          </span>
+          <AccountLink />
           <Link
             href="/list"
             className="hidden h-10 items-center rounded-full bg-primary px-4 text-sm font-bold text-on-primary hover:opacity-90 md:flex"

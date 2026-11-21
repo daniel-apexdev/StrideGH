@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Icon } from "@/components/icon";
 import { RaceCard } from "@/components/events/event-card";
 import { RegisterBar, RegisterPanel } from "@/components/events/register-bar";
 import { Breadcrumbs, Container, SectionHeading } from "@/components/page";
+import { PosterGallery } from "@/components/events/poster-gallery";
 import { SaveButton } from "@/components/events/save-button";
 import { VerificationBadge } from "@/components/events/verification-badge";
 import { getAllEvents, getEventBySlug, getToday } from "@/lib/events/repository";
@@ -25,7 +25,6 @@ import {
   whatsappShareUrl,
 } from "@/lib/events/format";
 import type { RaceEvent } from "@/lib/events/types";
-import { withBase } from "@/lib/site";
 
 export async function generateStaticParams() {
   return (await getAllEvents()).map((e) => ({ slug: e.slug }));
@@ -99,32 +98,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
           <Breadcrumbs tone="hero" items={[{ href: "/", label: "Home" }, { href: "/events", label: "Races" }, { label: event.name }]} />
           <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             <div className="flex flex-col items-center gap-4 lg:items-start">
-              {event.poster ? (
-                <a href={withBase(event.poster.src)} target="_blank" rel="noopener" aria-label={`Open poster full size: ${event.poster.alt}`}>
-                  <Image
-                    src={event.poster.src}
-                    alt={event.poster.alt}
-                    width={event.poster.width}
-                    height={event.poster.height}
-                    priority
-                    sizes="(max-width: 1024px) 80vw, 460px"
-                    className="h-auto max-h-[560px] w-auto max-w-full rounded-2xl object-contain shadow-[0_24px_50px_rgba(0,0,0,0.4)]"
-                  />
-                </a>
-              ) : (
-                <TypographicPoster event={event} />
-              )}
-              {images.length > 1 && (
-                <ul aria-label="More from the organiser" className="flex flex-wrap justify-center gap-3 lg:justify-start">
-                  {images.slice(1).map((img) => (
-                    <li key={img.src}>
-                      <a href={withBase(img.src)} target="_blank" rel="noopener" aria-label={`Open image: ${img.alt}`} className="block overflow-hidden rounded-xl ring-2 ring-white/30 hover:ring-white">
-                        <Image src={img.src} alt={img.alt} width={img.width} height={img.height} sizes="120px" className="h-[120px] w-auto object-cover" />
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {images.length ? <PosterGallery images={images} raceName={event.name} /> : <TypographicPoster event={event} />}
             </div>
 
             <div className="flex flex-col gap-5">
