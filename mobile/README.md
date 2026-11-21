@@ -26,6 +26,28 @@ Other targets: `npm run web` (browser), `npm run android` (emulator).
 
 To point at a different server (e.g. the deployed site), copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_URL`.
 
+### Using the GitHub Pages website
+
+The Pages site publishes the race and shop lists as files the app can read, so new races you
+push show up in the app too. In `mobile/.env`:
+
+```sh
+EXPO_PUBLIC_API_URL=https://daniel-apexdev.github.io/StrideGH/api
+EXPO_PUBLIC_SITE_URL=https://daniel-apexdev.github.io/StrideGH
+# Where "List your race" sends the details (Pages has no server to receive them):
+EXPO_PUBLIC_CONTACT_EMAIL=you@example.com
+# Accounts (the same Supabase project as the website, so one account works in both):
+EXPO_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=...
+```
+
+Restart `npx expo start` after changing `.env`. With the Pages site:
+
+- Races, shops, posters and share links come from the website, and update when you push.
+- **List your race** checks every field, then opens the organiser's email app with the details filled in.
+- **Your submissions** (tracking a reference) needs the full website with its server, so it won't find references.
+- Accounts work through Supabase when the two `SUPABASE` lines are set. Without them, the app uses the website's own `/api/auth`, which needs the full website running.
+
 ## Where the race data comes from
 
 The races live in one file: `../data/events.seed.json`. Later they'll live in Supabase. The app gets them two ways:

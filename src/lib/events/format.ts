@@ -19,6 +19,47 @@ export function isPast(event: Pick<RaceEvent, "date">, today: string): boolean {
   return daysUntil(event.date, today) < 0;
 }
 
+/*
+ * A race's life on Stride GH (same rules in mobile/src/lib/races.ts):
+ *   upcoming → this week → race day → past → archived
+ * Nothing needs doing by hand: it all follows from the race's date and today's date.
+ * - Past races leave the main lists the day after the race, get a "Race over" badge and a
+ *   darker look, and are listed under "Past races".
+ * - After PAST_RACE_DAYS they drop off "Past races" too (archived). Their pages stay up, so
+ *   links people shared keep working, and they still show next year's edition.
+ */
+export const PAST_RACE_DAYS = 365;
+
+export type RaceStatus = "upcoming" | "this-week" | "today" | "past";
+
+export function raceStatus(event: Pick<RaceEvent, "date">, today: string): RaceStatus {
+  const n = daysUntil(event.date, today);
+  if (n < 0) return "past";
+  if (n === 0) return "today";
+  return n <= 7 ? "this-week" : "upcoming";
+}
+
+/** Past for more than a year: no longer listed anywhere, but the page still opens. */
+export function isArchived(event: Pick<RaceEvent, "date">, today: string): boolean {
+  return daysUntil(event.date, today) < -PAST_RACE_DAYS;
+}
+
+/** "final-lap-2026" and "final-lap-2027" are the same race in different years. */
+export function seriesKey(slug: string): string {
+  return slug.replace(/-(19|20)\d{2}$/, "");
+}
+
+/** The same race in a later year, if it's listed (e.g. on the 2026 page, the 2027 edition). */
+export function nextEdition<T extends Pick<RaceEvent, "slug" | "date">>(event: T, all: T[]): T | null {
+  const key = seriesKey(event.slug);
+  return all.filter((e) => e.slug !== event.slug && seriesKey(e.slug) === key && e.date > event.date).sort((a, b) => a.date.localeCompare(b.date))[0] ?? null;
+}
+
+/** "Raced on Sat 5 Sep 2026" for a past race. */
+export function racedOn(iso: string): string {
+  return `Raced on ${formatDate.long(iso)}`;
+}
+
 const fmt = (iso: string, options: Intl.DateTimeFormatOptions) =>
   new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", ...options }).format(asUTC(iso));
 

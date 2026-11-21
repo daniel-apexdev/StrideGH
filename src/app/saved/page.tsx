@@ -13,7 +13,7 @@ export default async function SavedPage() {
       <PageHero kicker="YOUR LIST" title="Saved races" crumbs={[{ href: "/", label: "Home" }, { label: "Saved" }]}>
         <p className="flex items-center gap-2 text-on-hero2">
           <Icon name="info" size={18} />
-          Saved in this browser. Signing in to keep them across devices is coming to the website soon.
+          Saved in this browser. Keeping them in your account, across devices, is coming soon.
         </p>
       </PageHero>
       <Container className="pt-10">

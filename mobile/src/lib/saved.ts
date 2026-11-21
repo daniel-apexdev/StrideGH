@@ -31,6 +31,13 @@ export function toggleSaved(slug: string): boolean {
   return on;
 }
 
+/** Removes several at once, e.g. "Clear past races". */
+export function removeSaved(remove: string[]) {
+  slugs = slugs.filter((s) => !remove.includes(s));
+  emit();
+  storage.set(KEY, JSON.stringify(slugs));
+}
+
 function subscribe(l: () => void) {
   listeners.add(l);
   return () => listeners.delete(l);

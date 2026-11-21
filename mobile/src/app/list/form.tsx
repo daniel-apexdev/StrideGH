@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useRef, useState, type ComponentRef, type ReactNode } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, tap } from '@/components/controls';
@@ -12,6 +12,8 @@ import { Body, Display, Label, Title } from '@/components/type';
 import { ApiError, api } from '@/lib/api';
 import { useColors } from '@/lib/appearance';
 import { currentAuth } from '@/lib/auth';
+import { CONTACT_EMAIL } from '@/lib/config';
+import { submissionEmail } from '@/lib/email-listing';
 import { countryByIso, formatPhone, parsePhone } from '@/lib/contact';
 import { dmy } from '@/lib/dates';
 import { clearDraft, loadDraft, rememberMine, saveDraft } from '@/lib/listing';
@@ -22,6 +24,7 @@ import {
   DESCRIPTION_MAX,
   DESCRIPTION_MIN,
   draftToInput,
+  type SubmissionInput,
   emptyDistance,
   emptyDraft,
   ghanaRegions,
@@ -53,6 +56,8 @@ export default function ListForm() {
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [done, setDone] = useState<{ reference: string; email: string } | null>(null);
+  /** The website is the static GitHub Pages copy (no server): send the listing by email instead. */
+  const [mail, setMail] = useState<{ subject: string; body: string } | null>(null);
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   const today = todayISO();
 
@@ -133,7 +138,9 @@ export default function ListForm() {
       await clearDraft();
       setDone({ reference: submission.reference, email });
     } catch (e) {
-      if (e instanceof ApiError && Object.keys(e.fields).length) {
+      if (e instanceof ApiError && (e.status === 404 || e.status === 405) && !resubmit) {
+        setMail(submissionEmail(draftToInput(draft) as SubmissionInput));
+      } else if (e instanceof ApiError && Object.keys(e.fields).length) {
         setErrors(e.fields);
         goTo(Math.min(...Object.keys(e.fields).map(stepOf)));
         setProblem(e.message);
@@ -149,6 +156,41 @@ export default function ListForm() {
     return (
       <View style={{ flex: 1, backgroundColor: c.bg, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator color={c.icon} />
+      </View>
+    );
+  }
+
+  if (mail) {
+    const href = CONTACT_EMAIL
+      ? `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(mail.subject)}&body=${encodeURIComponent(mail.body)}`
+      : null;
+    return (
+      <View style={[styles.done, { backgroundColor: c.hero, paddingTop: insets.top + space.xxl, paddingBottom: insets.bottom + space.xl }]}>
+        <View style={{ width: '100%', maxWidth: MAX_W, gap: space.lg }}>
+          <View style={styles.tick}>
+            <Icon name="check" size={30} color={brand.night} strokeWidth={2.8} />
+          </View>
+          <Display size={40} color={c.onHero}>
+            One last step: send it
+          </Display>
+          <Body color={c.onHero2}>
+            Your details look good. {href ? 'Open your email app with everything filled in, then press send.' : 'Share the details with the Stride GH team.'} We check every
+            race against your official page and usually reply within 2 working days.
+          </Body>
+          {href ? (
+            <Button label={`Email ${CONTACT_EMAIL}`} variant="volt" onPress={() => Linking.openURL(href).catch(() => {})} />
+          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => Share.share({ title: mail.subject, message: `${mail.subject}\n\n${mail.body}` }).catch(() => {})}
+            style={[styles.heroOutline, { borderColor: c.heroLine }]}
+          >
+            <Text style={[styles.btnText, { color: c.onHero }]}>{href ? 'Share another way' : 'Share details'}</Text>
+          </Pressable>
+          <Pressable accessibilityRole="button" onPress={() => setMail(null)} style={[styles.heroOutline, { borderColor: c.heroLine }]}>
+            <Text style={[styles.btnText, { color: c.onHero }]}>Edit details</Text>
+          </Pressable>
+        </View>
       </View>
     );
   }

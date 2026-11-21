@@ -10,14 +10,14 @@ import { Icon } from "../icon";
 const noop = () => () => {};
 
 function note(e: RaceEvent, today: string): { text: string; cls: string } {
-  if (isPast(e, today)) return { text: "This race has taken place", cls: "bg-neu-bg text-neu-fg" };
+  if (isPast(e, today)) return { text: `Raced on ${formatDate.short(e.date)}`, cls: "bg-neu-bg text-neu-fg" };
   if (e.verification === "details_tbc") return { text: "Details still to be confirmed — we'll update this", cls: "bg-warn-bg text-warn-fg" };
   if (e.registration.method === "url" && e.registration.url) return { text: `Register on ${hostOf(e.registration.url)}`, cls: "bg-neu-bg text-neu-fg" };
   return { text: "See how to register", cls: "bg-neu-bg text-neu-fg" };
 }
 
 export function SavedList({ events }: { events: RaceEvent[] }) {
-  const { saved, toggle } = useSavedEvents();
+  const { saved, toggle, remove } = useSavedEvents();
   const mounted = useSyncExternalStore(noop, () => true, () => false);
   const list = events.filter((e) => saved.includes(e.slug));
 
@@ -39,27 +39,28 @@ export function SavedList({ events }: { events: RaceEvent[] }) {
   }
 
   const today = todayISO();
-  return (
-    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {list.map((e) => {
-        const n = note(e, today);
-        return (
-          <li key={e.slug} className="flex flex-col overflow-hidden rounded-2xl border border-line bg-surface">
+  const upcoming = list.filter((e) => !isPast(e, today)).sort((a, b) => a.date.localeCompare(b.date));
+  const past = list.filter((e) => isPast(e, today)).sort((a, b) => b.date.localeCompare(a.date));
+  const card = (e: RaceEvent) => {
+    const n = note(e, today);
+    const over = isPast(e, today);
+    return (
+          <li key={e.slug} className={`flex flex-col overflow-hidden rounded-2xl border border-line ${over ? "bg-soft" : "bg-surface"}`}>
             <div className="flex flex-1 gap-3 p-4">
               <Link href={`/events/${e.slug}`} className="flex min-w-0 flex-1 gap-3">
                 <div
-                  className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-[10px] leading-none text-[#f4f2ec]"
+                  className={`flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-[10px] leading-none text-[#f4f2ec] ${over ? "grayscale brightness-75" : ""}`}
                   style={{ background: e.coverColor }}
                 >
                   <span className="font-display text-[26px] font-extrabold">{formatDate.day(e.date)}</span>
                   <span className="text-[10px] font-bold text-volt">{formatDate.month(e.date)}</span>
                 </div>
                 <div className="flex min-w-0 flex-col gap-[3px]">
-                  <span className="font-display text-xl font-bold leading-[1.05]">{e.name}</span>
+                  <span className={`font-display text-xl font-bold leading-[1.05] ${over ? "text-text2" : ""}`}>{e.name}</span>
                   <span className="text-xs text-text2">
                     {distanceSummary(e.distances)} · {feeLabel(e)}
                   </span>
-                  <span className="text-xs font-bold text-link">{countdown(e.date, today)}</span>
+                  <span className={`text-xs font-bold ${over ? "uppercase tracking-[0.06em] text-text2" : "text-link"}`}>{over ? "Race over" : countdown(e.date, today)}</span>
                 </div>
               </Link>
               <button
@@ -76,8 +77,41 @@ export function SavedList({ events }: { events: RaceEvent[] }) {
               {n.text}
             </div>
           </li>
-        );
-      })}
-    </ul>
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-12">
+      {upcoming.length > 0 ? (
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{upcoming.map(card)}</ul>
+      ) : (
+        <p className="rounded-2xl border border-line bg-surface p-6 text-body">
+          None of your saved races are coming up.{" "}
+          <Link href="/events" className="font-semibold text-link">
+            Find your next race
+          </Link>
+        </p>
+      )}
+      {past.length > 0 && (
+        <section aria-labelledby="saved-past" className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 id="saved-past" className="font-display text-3xl font-extrabold uppercase leading-none">
+                Past races
+              </h2>
+              <p className="mt-1 text-sm text-text2">Races you saved that have already happened.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => remove(past.map((e) => e.slug))}
+              className="flex h-10 items-center rounded-full border border-line px-4 text-sm font-semibold hover:bg-tile"
+            >
+              Clear past races
+            </button>
+          </div>
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{past.map(card)}</ul>
+        </section>
+      )}
+    </div>
   );
 }

@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Card, CircleButton } from '@/components/controls';
 import { Icon } from '@/components/icons';
-import { Gallery } from '@/components/gallery';
+import { ImageViewer, PhotoCarousel } from '@/components/gallery';
 import { PosterImage } from '@/components/poster';
 import { EventTile, Numeral, VerificationBadge } from '@/components/race';
 import { ErrorState, Message, Shimmer } from '@/components/states';
@@ -26,6 +26,7 @@ import {
   isPast,
   locationLabel,
   mapsUrl,
+  nextEdition,
   type RaceEvent,
 } from '@/lib/races';
 import { toggleSaved, useSaved } from '@/lib/saved';
@@ -128,6 +129,7 @@ function RaceDetail({
   const [toast, setToast] = useState(false);
   const [sheet, setSheet] = useState(false);
   const [posterFailed, setPosterFailed] = useState(false);
+  const [viewing, setViewing] = useState<number | null>(null);
   const { width } = useWindowDimensions();
 
   useEffect(() => {
@@ -137,11 +139,20 @@ function RaceDetail({
   }, [toast]);
 
   const past = isPast(event, today);
+  const images = [...(event.poster ? [event.poster] : []), ...(event.gallery ?? [])];
+  const photos = event.gallery ?? [];
   const others = all.filter((e) => e.slug !== event.slug && !isPast(e, today));
   const sameMonth = others.filter((e) => e.date.slice(0, 7) === event.date.slice(0, 7));
   const carousel = (sameMonth.length ? sameMonth : others).slice(0, 6);
   const orgCount = event.organiser ? all.filter((e) => e.organiser === event.organiser).length : 0;
-  const status = statusCopy(event);
+  const next = nextEdition(event, all);
+  const status = past
+    ? {
+        tone: 'neu' as const,
+        title: 'This race has taken place',
+        text: 'We keep past races here for reference. When the organiser announces the next edition, it gets its own page and we link it from here.',
+      }
+    : statusCopy(event);
   const tone = { ok: [c.okBg, c.okFg], warn: [c.warnBg, c.warnFg], neu: [c.neuBg, c.neuFg] }[status.tone];
   const map = mapsUrl(event);
   const start = formatStartTime(event.startTime);
@@ -175,12 +186,9 @@ function RaceDetail({
             </CircleButton>
           </View>
           {event.poster && !posterFailed ? (
-            <PosterImage
-              poster={event.poster}
-              maxWidth={Math.min(320, width * 0.8)}
-              maxHeight={380}
-              onError={() => setPosterFailed(true)}
-            />
+            <Pressable accessibilityRole="imagebutton" accessibilityLabel={`${event.poster.alt}. Opens full screen.`} onPress={() => setViewing(0)}>
+              <PosterImage poster={event.poster} maxWidth={Math.min(320, width * 0.8)} maxHeight={380} onError={() => setPosterFailed(true)} />
+            </Pressable>
           ) : (
             <View accessible accessibilityRole="image" accessibilityLabel={`Poster for ${event.name}`} style={styles.poster}>
               <Numeral text={coverNumeral(event)} size={190} style={{ right: -14, bottom: -42 }} />
@@ -191,25 +199,56 @@ function RaceDetail({
               <Text style={styles.posterDist}>{distanceSummary(event.distances)}</Text>
             </View>
           )}
+          {/* Past races: a darker, dimmed header so it's clear at a glance. */}
+          {past ? <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.pastShade]} /> : null}
         </View>
+        <ImageViewer images={images} start={viewing} onClose={() => setViewing(null)} />
 
-        {event.gallery?.length ? (
-          <View style={{ paddingTop: space.lg }}>
-            <Gallery images={[...(event.poster ? [event.poster] : []), ...event.gallery]} />
+        {past ? (
+          <View style={styles.pastBanner}>
+            <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
+              <View style={styles.pastIcon}>
+                <Icon name="flag" size={18} color="#fff" />
+              </View>
+              <View style={{ flex: 1, gap: 4 }}>
+                <Text style={styles.pastTitle}>RACE OVER</Text>
+                <Body size={13} color="rgba(255,255,255,0.78)">
+                  This race took place on {formatDate.long(event.date)}. Registration is closed.
+                </Body>
+              </View>
+            </View>
+            {next ? (
+              <Button
+                label={`Next edition: ${formatDate.short(next.date)} ${next.date.slice(0, 4)}`}
+                variant="volt"
+                icon="arrow"
+                onPress={() => router.push({ pathname: '/event/[slug]', params: { slug: next.slug } })}
+              />
+            ) : (
+              <Button label="See upcoming races" variant="volt" onPress={() => router.push('/events')} />
+            )}
           </View>
         ) : null}
 
         <View style={{ paddingHorizontal: space.gutter, paddingTop: space.gutter, gap: 10 }}>
           <VerificationBadge event={event} today={today} />
-          <Display size={40}>{event.name}</Display>
+          <Display size={40} color={past ? c.text2 : undefined}>
+            {event.name}
+          </Display>
         </View>
 
         <View style={[styles.facts, { borderColor: c.line, backgroundColor: c.line }]}>
           <Fact label="DATE" value={formatDate.long(event.date)} />
-          <Fact label="COUNTDOWN" value={countdown(event.date, today)} />
+          {past ? <Fact label="STATUS" value="Race over" muted /> : <Fact label="COUNTDOWN" value={countdown(event.date, today)} />}
           <Fact label="ENTRY" value={feeLabel(event)} />
           <Fact label="START TIME" value={start ?? 'Not listed yet'} muted={!start} />
         </View>
+
+        {photos.length ? (
+          <View style={{ paddingTop: space.xl }}>
+            <PhotoCarousel photos={photos} onOpen={(i) => setViewing(images.length - photos.length + i)} />
+          </View>
+        ) : null}
 
         <View style={[styles.status, { backgroundColor: tone[0] }]}>
           <Icon name="info" size={22} color={tone[1]} />
@@ -473,6 +512,10 @@ function initials(name: string) {
 }
 
 const styles = StyleSheet.create({
+  pastShade: { backgroundColor: 'rgba(13,18,16,0.55)' },
+  pastBanner: { marginHorizontal: space.gutter, marginTop: space.gutter, padding: 16, gap: 14, borderRadius: radius.card, backgroundColor: '#18201c' },
+  pastIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.14)' },
+  pastTitle: { fontFamily: fonts.displayHeavy, fontSize: 24, lineHeight: 24, color: '#fff' },
   cover: { alignItems: 'center', paddingBottom: 20, overflow: 'hidden' },
   coverBar: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', gap: 8, zIndex: 2 },
   saveText: { fontFamily: fonts.bodyBold, fontSize: 13, color: brand.night },

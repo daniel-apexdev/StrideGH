@@ -6,97 +6,167 @@ import type { Poster } from "@/lib/events/types";
 import { Icon } from "../icon";
 
 /**
- * The organiser's poster, big, with the rest of their images (medal, route, second flyer)
- * as thumbnails underneath. Tap a thumbnail to show it in the main frame; tap the main
- * image to view everything full screen, with arrows, swipe and keyboard to move between them.
+ * The race poster on its own at the top of the race page. Tap it to view it full screen
+ * (with the other images after it, if there are any).
  */
-export function PosterGallery({ images, raceName }: { images: Poster[]; raceName: string }) {
-  const [index, setIndex] = useState(0);
-  const [open, setOpen] = useState(false);
-  const dialog = useRef<HTMLDialogElement>(null);
-  const count = images.length;
-  const go = (step: number) => setIndex((i) => (i + step + count) % count);
-  const current = images[index];
-
-  useEffect(() => {
-    const d = dialog.current;
-    if (!d) return;
-    if (open && !d.open) d.showModal();
-    if (!open && d.open) d.close();
-  }, [open]);
-
+export function PosterFrame({
+  poster,
+  images,
+  raceName,
+  muted = false,
+}: {
+  poster: Poster;
+  /** Everything the full-screen viewer can step through: the poster first, then the photos. */
+  images: Poster[];
+  raceName: string;
+  /** Past race: greyed out (the full-screen view stays in colour). */
+  muted?: boolean;
+}) {
+  const [open, setOpen] = useState<number | null>(null);
   return (
-    <div className="flex w-full max-w-[460px] flex-col gap-3">
+    <div className="w-full max-w-[460px]">
       <button
         type="button"
-        onClick={() => setOpen(true)}
-        aria-label={`View full size: ${current.alt}`}
+        onClick={() => setOpen(0)}
+        aria-label={`View poster full size: ${poster.alt}`}
         className="group relative block aspect-[4/5] w-full overflow-hidden rounded-2xl bg-black/25 shadow-[0_24px_50px_rgba(0,0,0,0.4)]"
       >
         <Image
-          key={current.src}
-          src={current.src}
-          alt={current.alt}
+          src={poster.src}
+          alt={poster.alt}
           fill
-          priority={index === 0}
+          priority
           sizes="(max-width: 1024px) 90vw, 460px"
-          className="object-contain"
+          className={`object-contain ${muted ? "brightness-75 grayscale" : ""}`}
         />
         <span className="absolute bottom-3 right-3 flex h-9 items-center gap-1.5 rounded-full bg-black/60 px-3 text-xs font-semibold text-white opacity-90 backdrop-blur transition group-hover:opacity-100">
-          <Icon name="external" size={14} /> {count > 1 ? `${index + 1} / ${count} · View` : "View full size"}
+          <Icon name="external" size={14} /> View full size
         </span>
       </button>
-
-      {count > 1 && (
-        <ul aria-label={`Images from ${raceName}`} className="grid grid-cols-5 gap-2">
-          {images.map((img, i) => (
-            <li key={img.src}>
-              <button
-                type="button"
-                onClick={() => setIndex(i)}
-                aria-label={`Show image ${i + 1}: ${img.alt}`}
-                aria-current={i === index ? "true" : undefined}
-                className={`relative block aspect-square w-full overflow-hidden rounded-lg bg-black/25 transition ${
-                  i === index ? "ring-[3px] ring-volt" : "opacity-70 ring-1 ring-white/25 hover:opacity-100"
-                }`}
-              >
-                <Image src={img.src} alt="" fill sizes="88px" className="object-cover" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <dialog
-        ref={dialog}
-        onClose={() => setOpen(false)}
-        onClick={(e) => e.target === e.currentTarget && setOpen(false)}
-        onKeyDown={(e) => {
-          if (e.key === "ArrowRight") go(1);
-          if (e.key === "ArrowLeft") go(-1);
-        }}
-        aria-label={`${raceName} images`}
-        className="m-0 h-dvh max-h-none w-screen max-w-none bg-black/95 p-0 text-white backdrop:bg-black/80"
-      >
-        {open && <Viewer images={images} index={index} go={go} close={() => setOpen(false)} />}
-      </dialog>
+      <Lightbox images={images} start={open} onClose={() => setOpen(null)} label={`${raceName} images`} />
     </div>
   );
 }
 
+/**
+ * The organiser's other images (medal, route, second flyer…) in a swipeable row under the
+ * race details. Arrows on larger screens; tap an image to view it full screen.
+ */
+export function PhotoCarousel({ photos, images, raceName }: { photos: Poster[]; images: Poster[]; raceName: string }) {
+  const track = useRef<HTMLUListElement>(null);
+  const [open, setOpen] = useState<number | null>(null);
+  const [edge, setEdge] = useState({ start: true, end: false });
+  const offset = images.length - photos.length; // the poster comes first in `images`
+
+  function onScroll() {
+    const t = track.current;
+    if (!t) return;
+    setEdge({ start: t.scrollLeft < 8, end: t.scrollLeft + t.clientWidth >= t.scrollWidth - 8 });
+  }
+  useEffect(onScroll, []);
+
+  const step = (dir: 1 | -1) => {
+    const t = track.current;
+    if (t) t.scrollBy({ left: dir * Math.max(240, t.clientWidth * 0.8), behavior: "smooth" });
+  };
+  const arrow =
+    "hidden h-11 w-11 items-center justify-center rounded-full border border-line bg-surface shadow-sm transition hover:bg-tile disabled:opacity-40 md:flex";
+
+  return (
+    <div className="relative">
+      {photos.length > 1 && !(edge.start && edge.end) && (
+        <div className="absolute -top-[68px] right-0 flex gap-2">
+          <button type="button" onClick={() => step(-1)} disabled={edge.start} aria-label="Previous photos" className={arrow}>
+            <Icon name="back" size={20} />
+          </button>
+          <button type="button" onClick={() => step(1)} disabled={edge.end} aria-label="More photos" className={arrow}>
+            <Icon name="arrow" size={20} />
+          </button>
+        </div>
+      )}
+      <ul
+        ref={track}
+        onScroll={onScroll}
+        aria-label={`Photos and flyers from ${raceName}`}
+        className="no-scrollbar -mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-5 px-5 pb-2 md:mx-0 md:scroll-px-0 md:px-0"
+      >
+        {photos.map((img, i) => (
+          <li key={img.src} className="w-[72%] shrink-0 snap-start sm:w-[300px]">
+            <button
+              type="button"
+              onClick={() => setOpen(offset + i)}
+              aria-label={`View full size: ${img.alt}`}
+              className="group block w-full text-left"
+            >
+              <span className="relative block aspect-[4/5] overflow-hidden rounded-2xl border border-line bg-tile">
+                <Image
+                  src={img.src}
+                  alt={img.alt}
+                  fill
+                  sizes="(max-width: 640px) 72vw, 300px"
+                  className="object-cover transition duration-300 group-hover:scale-[1.03]"
+                />
+              </span>
+              <span className="mt-2 line-clamp-2 block text-sm text-text2">{img.alt}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <Lightbox images={images} start={open} onClose={() => setOpen(null)} label={`${raceName} images`} />
+    </div>
+  );
+}
+
+/** Full-screen viewer with arrows, swipe and keyboard. `start` null = closed. */
+function Lightbox({ images, start, onClose, label }: { images: Poster[]; start: number | null; onClose: () => void; label: string }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [index, setIndex] = useState(0);
+  const [opened, setOpened] = useState<number | null>(null);
+  // Jump to the tapped image each time the viewer opens.
+  if (start !== opened) {
+    setOpened(start);
+    if (start !== null) setIndex(start);
+  }
+  const count = images.length;
+  const go = (step: number) => setIndex((i) => (i + step + count) % count);
+
+  useEffect(() => {
+    const d = dialog.current;
+    if (!d) return;
+    if (start !== null && !d.open) d.showModal();
+    if (start === null && d.open) d.close();
+  }, [start]);
+
+  return (
+    <dialog
+      ref={dialog}
+      onClose={onClose}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      onKeyDown={(e) => {
+        if (e.key === "ArrowRight") go(1);
+        if (e.key === "ArrowLeft") go(-1);
+      }}
+      aria-label={label}
+      className="m-0 h-dvh max-h-none w-screen max-w-none bg-black/95 p-0 text-white backdrop:bg-black/80"
+    >
+      {start !== null && <Viewer images={images} index={index} go={go} close={onClose} />}
+    </dialog>
+  );
+}
+
 function Viewer({ images, index, go, close }: { images: Poster[]; index: number; go: (step: number) => void; close: () => void }) {
-  const start = useRef<number | null>(null);
+  const startX = useRef<number | null>(null);
   const img = images[index];
   const many = images.length > 1;
   const arrow = "absolute top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 sm:flex";
   return (
     <div
       className="relative flex h-full w-full flex-col"
-      onPointerDown={(e) => (start.current = e.clientX)}
+      onPointerDown={(e) => (startX.current = e.clientX)}
       onPointerUp={(e) => {
-        if (start.current === null || !many) return;
-        const dx = e.clientX - start.current;
-        start.current = null;
+        if (startX.current === null || !many) return;
+        const dx = e.clientX - startX.current;
+        startX.current = null;
         if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
       }}
     >

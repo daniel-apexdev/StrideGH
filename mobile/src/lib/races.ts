@@ -69,6 +69,35 @@ export function daysUntil(iso: string, today: string): number {
 
 export const isPast = (e: Pick<RaceEvent, 'date'>, today: string) => daysUntil(e.date, today) < 0;
 
+/*
+ * A race's life (same rules as the website's src/lib/events/format.ts):
+ *   upcoming → this week → race day → past → archived
+ * Past races leave the main lists the day after, get a "Race over" look, and stay under
+ * "Past races" for PAST_RACE_DAYS. After that they're archived: not listed, but the page
+ * still opens and links to next year's edition.
+ */
+export const PAST_RACE_DAYS = 365;
+
+export type RaceStatus = 'upcoming' | 'this-week' | 'today' | 'past';
+
+export function raceStatus(e: Pick<RaceEvent, 'date'>, today: string): RaceStatus {
+  const n = daysUntil(e.date, today);
+  if (n < 0) return 'past';
+  if (n === 0) return 'today';
+  return n <= 7 ? 'this-week' : 'upcoming';
+}
+
+export const isArchived = (e: Pick<RaceEvent, 'date'>, today: string) => daysUntil(e.date, today) < -PAST_RACE_DAYS;
+
+/** "final-lap-2026" and "final-lap-2027" are the same race in different years. */
+export const seriesKey = (slug: string) => slug.replace(/-(19|20)\d{2}$/, '');
+
+/** The same race in a later year, if it's listed. */
+export function nextEdition(event: RaceEvent, all: RaceEvent[]): RaceEvent | null {
+  const key = seriesKey(event.slug);
+  return all.filter((e) => e.slug !== event.slug && seriesKey(e.slug) === key && e.date > event.date).sort((a, b) => a.date.localeCompare(b.date))[0] ?? null;
+}
+
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 const MONTH_NAMES = [
   'January',
@@ -184,7 +213,7 @@ export function filterEvents(events: RaceEvent[], f: EventFilters, today: string
     const past = isPast(e, today);
     if (when === 'upcoming' && past) return false;
     if (when === '30days' && (past || daysUntil(e.date, today) > 30)) return false;
-    if (when === 'past' && !past) return false;
+    if (when === 'past' && (!past || isArchived(e, today))) return false;
     if (f.distance && !e.distances.some((d) => d.category === f.distance)) return false;
     if (f.city && (f.city === 'unlisted' ? e.city !== null : e.city !== f.city)) return false;
     if (f.fee && e.feeKind !== f.fee) return false;

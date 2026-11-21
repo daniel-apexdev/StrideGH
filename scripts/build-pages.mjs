@@ -37,9 +37,31 @@ for (const entry of readdirSync(root)) {
 symlinkSync(path.join(root, "node_modules"), path.join(work, "node_modules"), "junction");
 
 // Server-only parts. Nothing on the public pages links to them.
-for (const p of ["src/app/admin", "src/app/api", "src/components/admin"]) {
+// /api/events and /api/stores stay: they become plain JSON files the phone app can read.
+for (const p of ["src/app/admin", "src/app/api/submissions", "src/app/api/auth", "src/app/api/events/[slug]", "src/components/admin"]) {
   rmSync(path.join(work, p), { recursive: true, force: true });
 }
+
+// The app reads races and shops from these two. On Pages they're files written once per build.
+writeFileSync(
+  path.join(work, "src/app/api/events/route.ts"),
+  `import { getAllEvents, getToday } from "@/lib/events/repository";
+export const dynamic = "force-static";
+export async function GET() {
+  const [events, today] = await Promise.all([getAllEvents(), getToday()]);
+  return Response.json({ today, events });
+}
+`,
+);
+writeFileSync(
+  path.join(work, "src/app/api/stores/route.ts"),
+  `import { getStores } from "@/lib/stores/repository";
+export const dynamic = "force-static";
+export async function GET() {
+  return Response.json({ stores: await getStores() });
+}
+`,
+);
 
 console.log(`› Building the static site${process.env.BASE_PATH ? ` for ${process.env.BASE_PATH}` : ""}`);
 const next = path.join(root, "node_modules", "next", "dist", "bin", "next");

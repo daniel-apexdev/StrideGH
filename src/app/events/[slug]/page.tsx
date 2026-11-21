@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Icon } from "@/components/icon";
 import { RaceCard } from "@/components/events/event-card";
 import { RegisterBar, RegisterPanel } from "@/components/events/register-bar";
 import { Breadcrumbs, Container, SectionHeading } from "@/components/page";
-import { PosterGallery } from "@/components/events/poster-gallery";
+import { PhotoCarousel, PosterFrame } from "@/components/events/poster-gallery";
 import { SaveButton } from "@/components/events/save-button";
 import { VerificationBadge } from "@/components/events/verification-badge";
 import { getAllEvents, getEventBySlug, getToday } from "@/lib/events/repository";
@@ -20,6 +21,7 @@ import {
   googleCalendarUrl,
   hostOf,
   isPast,
+  nextEdition,
   locationLabel,
   mapsUrl,
   whatsappShareUrl,
@@ -73,7 +75,14 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
   const sameMonth = upcomingOthers.filter((e) => e.date.slice(0, 7) === event.date.slice(0, 7));
   const others = (sameMonth.length ? sameMonth : upcomingOthers).slice(0, 6);
   const organiserCount = event.organiser ? all.filter((e) => e.organiser === event.organiser).length : 0;
-  const status = statusCopy(event);
+  const next = nextEdition(event, all);
+  const status = past
+    ? {
+        cls: "bg-neu-bg text-neu-fg",
+        title: "This race has taken place",
+        text: "We keep past races here for reference. When the organiser announces the next edition, it gets its own page and we link it from here.",
+      }
+    : statusCopy(event);
   const map = mapsUrl(event);
   const start = formatStartTime(event.startTime);
 
@@ -91,26 +100,42 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
     <main className="pb-24 lg:pb-0">
       {/* Top: poster on the left, the essentials and registration on the right */}
       <section className="relative overflow-hidden text-[#f4f2ec]" style={{ background: event.coverColor }}>
+        {/* Past races get a darker, greyed-out header so it's clear at a glance. */}
+        {past && <span aria-hidden className="absolute inset-0 bg-[#0d1210]/70 backdrop-grayscale" />}
         <span aria-hidden className="outline-numeral pointer-events-none absolute -right-10 -top-16 text-[360px] leading-none opacity-25">
           {coverNumeral(event)}
         </span>
         <Container className="relative flex flex-col gap-8 py-8 md:py-12">
-          <Breadcrumbs tone="hero" items={[{ href: "/", label: "Home" }, { href: "/events", label: "Races" }, { label: event.name }]} />
+          <Breadcrumbs
+            tone="hero"
+            items={[
+              { href: "/", label: "Home" },
+              past ? { href: "/events?when=past", label: "Past races" } : { href: "/events", label: "Races" },
+              { label: event.name },
+            ]}
+          />
+          {past && <PastBanner date={event.date} next={next} />}
           <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             <div className="flex flex-col items-center gap-4 lg:items-start">
-              {images.length ? <PosterGallery images={images} raceName={event.name} /> : <TypographicPoster event={event} />}
+              {event.poster ? (
+                <PosterFrame poster={event.poster} images={images} raceName={event.name} muted={past} />
+              ) : (
+                <div className={past ? "grayscale" : ""}>
+                  <TypographicPoster event={event} />
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-5">
               <VerificationBadge event={event} today={today} />
-              <h1 className="font-display text-5xl font-extrabold uppercase leading-[0.9] md:text-7xl">{event.name}</h1>
+              <h1 className={`font-display text-5xl font-extrabold uppercase leading-[0.9] md:text-7xl ${past ? "text-white/80" : ""}`}>{event.name}</h1>
               <p className="flex items-center gap-2 text-lg text-white/85">
                 <Icon name="pin" size={18} />
                 {locationLabel(event)}
               </p>
               <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-white/20 text-text">
                 <Fact label="Date" value={formatDate.long(event.date)} />
-                <Fact label="Countdown" value={countdown(event.date, today)} />
+                {past ? <Fact label="Status" value="Race over" muted /> : <Fact label="Countdown" value={countdown(event.date, today)} />}
                 <Fact label="Distances" value={distanceSummary(event.distances)} />
                 <Fact label="Start time" value={start ?? "Not listed yet"} muted={!start} />
               </dl>
@@ -142,6 +167,13 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
           </div>
         </Container>
       </section>
+
+      {event.gallery.length > 0 && (
+        <Container as="section" className="pt-12">
+          <SectionHeading kicker={`${event.gallery.length} ${event.gallery.length === 1 ? "IMAGE" : "IMAGES"}`} title="Photos & flyers" />
+          <PhotoCarousel photos={event.gallery} images={images} raceName={event.name} />
+        </Container>
+      )}
 
       <Container className="grid gap-12 pt-12 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex flex-col gap-12">
@@ -261,6 +293,40 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
 
       <RegisterBar {...register} />
     </main>
+  );
+}
+
+/** Shown at the top of a past race's page. */
+function PastBanner({ date, next }: { date: string; next: RaceEvent | null }) {
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-white/15 bg-black/40 p-4 sm:flex-row sm:items-center sm:justify-between md:p-5">
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15">
+          <Icon name="flag" size={18} />
+        </span>
+        <span>
+          <span className="block font-display text-2xl font-extrabold uppercase leading-none">Race over</span>
+          <span className="mt-1 block text-sm text-white/75">
+            This race took place on {formatDate.long(date)}. Registration is closed.
+          </span>
+        </span>
+      </div>
+      {next ? (
+        <Link
+          href={`/events/${next.slug}`}
+          className="flex h-11 shrink-0 items-center gap-2 self-start rounded-xl bg-volt px-4 text-sm font-bold text-night sm:self-auto"
+        >
+          Next edition: {formatDate.short(next.date)} {next.date.slice(0, 4)} <Icon name="arrow" size={16} />
+        </Link>
+      ) : (
+        <Link
+          href="/events"
+          className="flex h-11 shrink-0 items-center gap-2 self-start rounded-xl border border-white/30 px-4 text-sm font-bold hover:bg-white/10 sm:self-auto"
+        >
+          See upcoming races <Icon name="arrow" size={16} />
+        </Link>
+      )}
+    </div>
   );
 }
 

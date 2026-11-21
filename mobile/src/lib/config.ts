@@ -47,3 +47,6 @@ export const SITE_URL = (process.env.EXPO_PUBLIC_SITE_URL ?? API_BASE.replace(/\
 export function siteAsset(src: string): string {
   return /^https?:\/\//.test(src) ? src : `${SITE_URL}${src.startsWith('/') ? '' : '/'}${src}`;
 }
+
+/** Where organisers email new races when the website has no server (the GitHub Pages copy). */
+export const CONTACT_EMAIL = process.env.EXPO_PUBLIC_CONTACT_EMAIL?.trim() ?? '';

@@ -1,4 +1,4 @@
-import { daysUntil, isPast } from "./format";
+import { daysUntil, isArchived, isPast } from "./format";
 import { distanceCategories, feeKinds, type EventFilters, type RaceEvent } from "./types";
 
 /** Race filtering, used on the server and in the browser (so it also works on a static host like GitHub Pages). */
@@ -9,7 +9,7 @@ export function filterEvents(events: RaceEvent[], f: EventFilters, today: string
     const past = isPast(e, today);
     if ((f.when ?? "upcoming") === "upcoming" && past) return false;
     if (f.when === "30days" && (past || daysUntil(e.date, today) > 30)) return false;
-    if (f.when === "past" && !past) return false;
+    if (f.when === "past" && (!past || isArchived(e, today))) return false;
     if (f.distance && !e.distances.some((d) => d.category === f.distance)) return false;
     if (f.city && (f.city === "unlisted" ? e.city !== null : e.city !== f.city)) return false;
     if (f.fee && e.feeKind !== f.fee) return false;

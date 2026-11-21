@@ -8,7 +8,7 @@ import { ErrorState, Message, Shimmer } from '@/components/states';
 import { Body, Display, Title } from '@/components/type';
 import { useColors } from '@/lib/appearance';
 import { countdown, distanceSummary, feeLabel, formatDate, hostOf, isPast, type RaceEvent } from '@/lib/races';
-import { toggleSaved, useSaved } from '@/lib/saved';
+import { removeSaved, toggleSaved, useSaved } from '@/lib/saved';
 import { useRaces } from '@/lib/use-races';
 import { brand, fonts, radius, space } from '@/theme';
 
@@ -19,13 +19,21 @@ export default function Saved() {
   const { data, error, loading, refreshing, reload } = useRaces();
   const today = data?.today ?? '';
   const list = data ? data.events.filter((e) => saved.includes(e.slug)) : [];
+  const upcoming = list.filter((e) => !isPast(e, today)).sort((a, b) => a.date.localeCompare(b.date));
+  const past = list.filter((e) => isPast(e, today)).sort((a, b) => b.date.localeCompare(a.date));
+  type Row = { key: string; event: RaceEvent } | { key: 'past-header'; event?: undefined } | { key: 'none-upcoming'; event?: undefined };
+  const rows: Row[] = [
+    ...(upcoming.length || !past.length ? [] : [{ key: 'none-upcoming' as const }]),
+    ...upcoming.map((e) => ({ key: e.slug, event: e })),
+    ...(past.length ? [{ key: 'past-header' as const }, ...past.map((e) => ({ key: e.slug, event: e }))] : []),
+  ];
 
   return (
     <FlatList
       style={{ flex: 1, backgroundColor: c.bg }}
       contentContainerStyle={{ paddingHorizontal: space.gutter, paddingBottom: space.xxl, gap: space.md }}
-      data={loading || (error && !data) ? [] : list}
-      keyExtractor={(e) => e.slug}
+      data={loading || (error && !data) ? [] : rows}
+      keyExtractor={(r) => r.key}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={reload} tintColor={brand.volt} />}
       ListHeaderComponent={
         <View style={{ paddingTop: insets.top + space.lg, gap: space.md, marginBottom: space.xs }}>
@@ -33,12 +41,39 @@ export default function Saved() {
           <View style={[styles.note, { backgroundColor: c.surface, borderColor: c.line }]}>
             <Icon name="info" size={18} color={c.text2} />
             <Body size={13} style={{ flex: 1 }}>
-              Saved on this phone. Accounts that sync across devices are coming later.
+              Saved on this phone. Keeping them in your account, across devices, is coming soon.
             </Body>
           </View>
         </View>
       }
-      renderItem={({ item }) => <SavedCard event={item} today={today} />}
+      renderItem={({ item }) =>
+        item.event ? (
+          <SavedCard event={item.event} today={today} />
+        ) : item.key === 'none-upcoming' ? (
+          <Card style={{ padding: 16, gap: 10 }}>
+            <Body size={14}>None of your saved races are coming up.</Body>
+            <Button label="Find your next race" variant="outline" onPress={() => router.navigate('/events')} />
+          </Card>
+        ) : (
+          <View style={styles.pastHead}>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Title size={24}>Past races</Title>
+              <Body size={12} color={c.text2}>
+                Races you saved that have already happened.
+              </Body>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => removeSaved(past.map((e) => e.slug))}
+              style={[styles.clear, { borderColor: c.line }]}
+            >
+              <Body size={13} weight="semi" color={c.text}>
+                Clear
+              </Body>
+            </Pressable>
+          </View>
+        )
+      }
       ListEmptyComponent={
         loading ? (
           <View style={{ gap: space.md }}>
@@ -64,7 +99,7 @@ function SavedCard({ event, today }: { event: RaceEvent; today: string }) {
   const c = useColors();
   const past = isPast(event, today);
   const note = past
-    ? { text: 'This race has taken place', bg: c.neuBg, fg: c.neuFg }
+    ? { text: `Raced on ${formatDate.short(event.date)}`, bg: c.neuBg, fg: c.neuFg }
     : event.verification === 'details_tbc'
       ? { text: "Details still to be confirmed — we'll update this", bg: c.warnBg, fg: c.warnFg }
       : event.registration.method === 'url' && event.registration.url
@@ -72,7 +107,7 @@ function SavedCard({ event, today }: { event: RaceEvent; today: string }) {
         : { text: 'See how to register', bg: c.neuBg, fg: c.neuFg };
 
   return (
-    <Card style={{ overflow: 'hidden' }}>
+    <Card style={[{ overflow: 'hidden' }, past && { backgroundColor: c.soft }]}>
       <View style={styles.row}>
         <Pressable
           onPress={() => router.push({ pathname: '/event/[slug]', params: { slug: event.slug } })}
@@ -80,16 +115,19 @@ function SavedCard({ event, today }: { event: RaceEvent; today: string }) {
           style={{ flex: 1, flexDirection: 'row', gap: 12 }}
         >
           <View style={[styles.date, { backgroundColor: event.coverColor }]}>
+            {past ? <View style={[StyleSheet.absoluteFill, styles.shade]} /> : null}
             <Text style={styles.day}>{formatDate.day(event.date)}</Text>
             <Text style={styles.month}>{formatDate.month(event.date)}</Text>
           </View>
           <View style={{ flex: 1, gap: 3 }}>
-            <Title size={20}>{event.name}</Title>
+            <Title size={20} color={past ? c.text2 : undefined}>
+              {event.name}
+            </Title>
             <Body size={12} color={c.text2}>
               {distanceSummary(event.distances)} · {feeLabel(event)}
             </Body>
-            <Body size={12} weight="bold" color={c.link}>
-              {countdown(event.date, today)}
+            <Body size={12} weight="bold" color={past ? c.text2 : c.link}>
+              {past ? 'RACE OVER' : countdown(event.date, today)}
             </Body>
           </View>
         </Pressable>
@@ -115,7 +153,10 @@ function SavedCard({ event, today }: { event: RaceEvent; today: string }) {
 const styles = StyleSheet.create({
   note: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: 10, borderWidth: 1 },
   row: { flexDirection: 'row', gap: 12, padding: 12 },
-  date: { width: 64, height: 64, borderRadius: radius.tile, alignItems: 'center', justifyContent: 'center' },
+  date: { width: 64, height: 64, borderRadius: radius.tile, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  shade: { backgroundColor: 'rgba(13,18,16,0.55)' },
+  pastHead: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginTop: space.lg },
+  clear: { height: 36, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   day: { fontFamily: fonts.displayHeavy, fontSize: 26, lineHeight: 28, color: brand.paper },
   month: { fontFamily: fonts.bodyBold, fontSize: 10, color: brand.volt },
   remove: { width: 44, height: 44, borderRadius: 22, backgroundColor: brand.volt, alignItems: 'center', justifyContent: 'center' },

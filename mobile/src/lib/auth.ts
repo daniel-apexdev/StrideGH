@@ -34,8 +34,9 @@ async function load() {
   // Refresh in the background; only a definite "signed out" from the server ends the session.
   try {
     const fresh = await api.me(token);
-    await storage.set(USER_KEY, JSON.stringify(fresh.user));
-    if (state.status === 'signedIn' && state.token === token) set({ status: 'signedIn', user: fresh.user, token });
+    const next = fresh.token ?? token;
+    await Promise.all([storage.set(USER_KEY, JSON.stringify(fresh.user)), storage.set(TOKEN_KEY, next)]);
+    if (state.status === 'signedIn' && state.token === token) set({ status: 'signedIn', user: fresh.user, token: next });
   } catch (e) {
     if (e instanceof ApiError && e.status === 401) await clear();
   }

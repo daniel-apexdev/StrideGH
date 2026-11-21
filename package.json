@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "db:seed-sql": "node scripts/generate-seed.mjs",
+    "race:next": "node scripts/next-edition.mjs",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "mobile": "npm --prefix mobile start",

@@ -136,6 +136,7 @@ With no email settings, `npm run dev` prints emails in the terminal, and the app
 | `npm run lint` | ESLint |
 | `npm run build` | Production build — run before deploying |
 | `npm run build:pages` | Static copy of the public site in `out/`, for GitHub Pages (see below) |
+| `npm run race:next -- final-lap-2026 2027-12-18` | Copy a race to next year's date (see [data/RACES.md](data/RACES.md)) |
 | `npm run db:seed-sql` | Regenerate `supabase/seed.sql` from `data/events.seed.json` |
 | `npm run mobile` | Start the Expo app (same as `npx expo start` in `mobile/`) |
 | `npm run email:test -- you@example.com` | Check the Gmail settings and send a test email |
@@ -151,7 +152,7 @@ The repo includes `.github/workflows/deploy-pages.yml`, which builds the public 
 3. Optional: **Settings → Secrets and variables → Actions → Variables → New repository variable** named `CONTACT_EMAIL` (the address organisers send new races to). Without it, organisers are asked to copy the details and email them. Add `SUPABASE_URL` and `SUPABASE_ANON_KEY` here too to turn on website accounts (see "Accounts and email codes").
 4. Push, or open the **Actions** tab and run "Deploy website to GitHub Pages". The site appears at `https://<your-username>.github.io/<repo-name>/`.
 
-**Updating races and shops:** edit, commit and push. The site rebuilds in about two minutes.
+**Updating races and shops:** edit, commit and push. The site rebuilds in about two minutes. See [data/RACES.md](data/RACES.md) for adding races, next year's editions, and what happens after race day (all automatic).
 
 | To change | Edit |
 | --- | --- |
@@ -169,6 +170,7 @@ Run `npm test` before pushing: it checks the JSON files, so a typo shows up with
 - "Check a submission" tells organisers to reply to your email instead.
 - Races approved in the admin portal on your computer live in `data/local/` and are **not** published. Copy them into `data/events.seed.json` to put them on the site.
 - Search and filters run in the visitor's browser, and "upcoming" uses the visitor's date, so the lists stay right between builds.
+- The race and shop lists are also published as `/api/events` and `/api/stores`, so the phone app can use the Pages site for its data (see [mobile/README.md](mobile/README.md)).
 
 To try the static site on your computer: `npm run build:pages`, then `npx serve out` and open the address it prints. (The build works on a copy in `.pages-build/` and never includes `.env` files.)
 

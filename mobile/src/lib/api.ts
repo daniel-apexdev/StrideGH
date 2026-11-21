@@ -1,37 +1,14 @@
 import bundledEvents from '../../../data/events.seed.json';
 import bundledStores from '../../../data/stores.seed.json';
 
+import { ApiError } from './api-error';
 import { API_BASE } from './config';
+import { supabaseAccounts, supabaseAuth } from './supabase-auth';
 import { todayISO, type RaceEvent } from './races';
 import { sortStores, type Store } from './stores';
 import type { PublicSubmission } from './submission';
 
-export class ApiError extends Error {
-  status: number;
-  /** true when the server could not be reached at all */
-  offline: boolean;
-  /** Field problems from the website's form check, keyed like "organiser.email". */
-  fields: Record<string, string>;
-  /** Machine-readable reason from the API, e.g. "account_exists". */
-  code: string | null;
-  /** Extra details sent with the error, e.g. { resendIn: 20 }. */
-  extra: Record<string, unknown>;
-  constructor(
-    message: string,
-    status: number,
-    offline = false,
-    fields: Record<string, string> = {},
-    code: string | null = null,
-    extra = {},
-  ) {
-    super(message);
-    this.status = status;
-    this.offline = offline;
-    this.fields = fields;
-    this.code = code;
-    this.extra = extra;
-  }
-}
+export { ApiError };
 
 const TIMEOUT_MS = 12_000;
 
@@ -100,11 +77,12 @@ export const api = {
   events(fresh = false): Promise<EventsResponse> {
     if (!fresh && cached && Date.now() - cached.at < CACHE_MS) return cached.promise;
     const promise = get<Omit<EventsResponse, 'source'>>('/events')
-      .then((r): EventsResponse => ({ ...r, source: 'live' }))
+      // The GitHub Pages copy is rebuilt daily, so trust the phone's date if it's later.
+      .then((r): EventsResponse => ({ ...r, today: r.today > todayISO() ? r.today : todayISO(), source: 'live' }))
       .catch((e: unknown): EventsResponse => ({
         // Same file the website serves from, bundled at build time (see metro.config.js).
         today: todayISO(),
-        events: bundledEvents as RaceEvent[],
+        events: [...(bundledEvents as RaceEvent[])].sort((a, b) => a.date.localeCompare(b.date)),
         source: 'bundled',
         problem: e instanceof Error ? e.message : String(e),
       }));
@@ -138,18 +116,21 @@ export const api = {
   resubmit(reference: string, input: object): Promise<{ submission: PublicSubmission }> {
     return send('PUT', `/submissions/${encodeURIComponent(reference)}`, input);
   },
+  // Accounts: Supabase when it's set up (shared with the website, works with the GitHub Pages
+  // site), otherwise the website's own /api/auth.
   /** Email a sign-in code. */
   authStart(body: { mode: 'signup'; name: string; email: string; phone: string } | { mode: 'signin'; email: string }): Promise<AuthStart> {
-    return send('POST', '/auth/start', body);
+    return supabaseAccounts ? supabaseAuth.start(body) : send('POST', '/auth/start', body);
   },
   authVerify(email: string, code: string): Promise<{ token: string; user: Account; isNew: boolean }> {
-    return send('POST', '/auth/verify', { email, code });
+    return supabaseAccounts ? supabaseAuth.verify(email, code) : send('POST', '/auth/verify', { email, code });
   },
-  me(token: string): Promise<{ user: Account }> {
-    return send('GET', '/auth/me', undefined, token);
+  /** `token` is set when the session token was renewed and must be stored instead. */
+  me(token: string): Promise<{ user: Account; token?: string }> {
+    return supabaseAccounts ? supabaseAuth.me(token) : send('GET', '/auth/me', undefined, token);
   },
   signOut(token: string): Promise<{ ok: true }> {
-    return send('POST', '/auth/signout', {}, token);
+    return supabaseAccounts ? supabaseAuth.signOut(token) : send('POST', '/auth/signout', {}, token);
   },
   submission(reference: string, email: string): Promise<{ submission: PublicSubmission }> {
     return get(`/submissions/${encodeURIComponent(reference.trim().toUpperCase())}?email=${encodeURIComponent(email.trim())}`);

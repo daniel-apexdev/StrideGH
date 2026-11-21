@@ -157,7 +157,7 @@ export default function Events() {
           <View style={{ paddingHorizontal: space.gutter, paddingTop: space.lg, gap: space.md }}>
             <Body size={12} color={c.text2}>
               “Checked” means we matched the listing to the organiser&apos;s official page. “Not yet verified” means it came from a
-              community calendar — check the official page before paying. Past races move to “Past races” automatically.
+              community calendar — check the official page before paying. Races move to “Past races” the day after they happen and stay there for a year.
             </Body>
             <Pressable accessibilityRole="button" onPress={() => router.push('/list')} style={{ minHeight: 44, justifyContent: 'center' }}>
               <Body size={14} weight="bold" color={c.link}>

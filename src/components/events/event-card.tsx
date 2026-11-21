@@ -1,18 +1,24 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { RaceEvent } from "@/lib/events/types";
-import { countdown, coverNumeral, distanceSummary, feeLabel, formatDate, isPast, locationLabel } from "@/lib/events/format";
+import { countdown, coverNumeral, distanceSummary, feeLabel, formatDate, locationLabel, raceStatus, type RaceStatus } from "@/lib/events/format";
 import { VerificationBadge } from "./verification-badge";
 
 /** Vertical card for race grids on the website: cover (poster or typographic), date, name, place, distances, fee. */
 export function RaceCard({ event, today, priority }: { event: RaceEvent; today: string; priority?: boolean }) {
-  const past = isPast(event, today);
+  const status = raceStatus(event, today);
+  const past = status === "past";
   return (
     <Link
       href={`/events/${event.slug}`}
-      className={`group flex flex-col overflow-hidden rounded-2xl border border-line bg-surface transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(0,0,0,0.12)] ${past ? "opacity-75" : ""}`}
+      aria-label={past ? `${event.name} (race over)` : undefined}
+      className={`group flex flex-col overflow-hidden rounded-2xl border transition ${
+        past
+          ? "border-line bg-soft hover:border-line2"
+          : "border-line bg-surface hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(0,0,0,0.12)]"
+      }`}
     >
-      <div className="relative aspect-[4/3] overflow-hidden" style={{ background: event.coverColor }}>
+      <div className={`relative aspect-[4/3] overflow-hidden ${past ? "grayscale" : ""}`} style={{ background: event.coverColor }}>
         {event.poster ? (
           <>
             <Image
@@ -35,10 +41,11 @@ export function RaceCard({ event, today, priority }: { event: RaceEvent; today: 
           <span className="font-display text-[26px] font-extrabold">{formatDate.day(event.date)}</span>
           <span className="text-[10px] font-bold text-[#5a635e]">{formatDate.weekday(event.date)}</span>
         </span>
-        {!past && <span className="absolute right-3 top-3 rounded-md bg-volt px-2 py-1 text-[11px] font-bold text-night">{countdown(event.date, today)}</span>}
+        {past && <span aria-hidden className="absolute inset-0 bg-black/45" />}
+        <StatusChip status={status} date={event.date} today={today} className="absolute right-3 top-3" />
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <span className="font-display text-[24px] font-bold leading-[1.02] group-hover:underline">{event.name}</span>
+        <span className={`font-display text-[24px] font-bold leading-[1.02] group-hover:underline ${past ? "text-text2" : ""}`}>{event.name}</span>
         <span className="text-[13px] text-text2">{locationLabel(event)}</span>
         <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
           <span className="rounded-md bg-soft px-2 py-1 text-xs font-bold">{distanceSummary(event.distances)}</span>
@@ -52,17 +59,16 @@ export function RaceCard({ event, today, priority }: { event: RaceEvent; today: 
 
 /** Horizontal card used in compact lists. */
 export function EventCard({ event, today }: { event: RaceEvent; today: string }) {
-  const past = isPast(event, today);
+  const status = raceStatus(event, today);
+  const past = status === "past";
   return (
-    <Link
-      href={`/events/${event.slug}`}
-      className={`flex gap-3 rounded-[14px] border border-line bg-surface p-2.5 ${past ? "opacity-75" : ""}`}
-    >
+    <Link href={`/events/${event.slug}`} className={`flex gap-3 rounded-[14px] border border-line p-2.5 ${past ? "bg-soft" : "bg-surface"}`}>
       <div
-        className="relative flex h-[120px] w-[92px] shrink-0 flex-col overflow-hidden rounded-[10px] p-2 leading-none text-[#f4f2ec]"
+        className={`relative flex h-[120px] w-[92px] shrink-0 flex-col overflow-hidden rounded-[10px] p-2 leading-none text-[#f4f2ec] ${past ? "grayscale" : ""}`}
         style={{ background: event.coverColor }}
       >
         {event.poster && <PosterFill src={event.poster.src} sizes="92px" />}
+        {past && <span aria-hidden className="absolute inset-0 bg-black/45" />}
         <span className="relative font-display text-[26px] font-extrabold">{formatDate.day(event.date)}</span>
         <span className="relative text-[10px] font-bold text-volt">{formatDate.month(event.date)}</span>
         {!event.poster && (
@@ -72,10 +78,10 @@ export function EventCard({ event, today }: { event: RaceEvent; today: string })
         )}
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-link">
-          {formatDate.short(event.date)} · {countdown(event.date, today)}
+        <span className={`text-[11px] font-bold uppercase tracking-[0.06em] ${past ? "text-text2" : "text-link"}`}>
+          {formatDate.short(event.date)} · {past ? "Race over" : countdown(event.date, today)}
         </span>
-        <span className="font-display text-[21px] font-bold leading-[1.05]">{event.name}</span>
+        <span className={`font-display text-[21px] font-bold leading-[1.05] ${past ? "text-text2" : ""}`}>{event.name}</span>
         <span className="text-xs text-text2">{locationLabel(event)}</span>
         <div className="mt-auto flex flex-wrap items-center gap-1.5">
           <span className="rounded-[5px] bg-soft px-1.5 py-[3px] text-[11px] font-bold">{distanceSummary(event.distances)}</span>
@@ -128,6 +134,25 @@ export function EventTile({ event }: { event: RaceEvent }) {
       </span>
     </Link>
   );
+}
+
+/** Top-corner chip: countdown, "Race day", or "Race over". */
+export function StatusChip({ status, date, today, className = "" }: { status: RaceStatus; date: string; today: string; className?: string }) {
+  if (status === "past")
+    return (
+      <span className={`flex items-center gap-1.5 rounded-md bg-night/90 px-2 py-1 text-[11px] font-bold uppercase tracking-[0.06em] text-white ${className}`}>
+        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-white/60" />
+        Race over
+      </span>
+    );
+  if (status === "today")
+    return (
+      <span className={`flex items-center gap-1.5 rounded-md bg-volt px-2 py-1 text-[11px] font-bold uppercase tracking-[0.06em] text-night ${className}`}>
+        <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-night" />
+        Race day
+      </span>
+    );
+  return <span className={`rounded-md bg-volt px-2 py-1 text-[11px] font-bold text-night ${className}`}>{countdown(date, today)}</span>;
 }
 
 /**

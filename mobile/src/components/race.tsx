@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } fro
 import Svg, { Text as SvgText } from 'react-native-svg';
 
 import { useColors } from '@/lib/appearance';
-import { countdown, coverNumeral, distanceSummary, feeLabel, formatDate, isPast, locationLabel, type RaceEvent } from '@/lib/races';
+import { countdown, coverNumeral, distanceSummary, feeLabel, formatDate, isPast, locationLabel, raceStatus, type RaceEvent } from '@/lib/races';
 import { brand, fonts, radius, space } from '@/theme';
 
 import { PosterFill } from './poster';
@@ -57,7 +57,7 @@ export function Numeral({
 export function VerificationBadge({ event, today, style }: { event: RaceEvent; today: string; style?: StyleProp<ViewStyle> }) {
   const c = useColors();
   const s = isPast(event, today)
-    ? { label: 'Past race', bg: c.neuBg, fg: c.neuFg }
+    ? { label: `Raced on ${formatDate.short(event.date)}`, bg: c.neuBg, fg: c.neuFg }
     : event.verification === 'verified'
       ? { label: 'Checked with official page', bg: c.okBg, fg: c.okFg }
       : event.verification === 'details_tbc'
@@ -86,25 +86,31 @@ export function Pill({ text }: { text: string }) {
 /** Horizontal card used in the events directory. */
 export function EventCard({ event, today }: { event: RaceEvent; today: string }) {
   const c = useColors();
-  const past = isPast(event, today);
+  const status = raceStatus(event, today);
+  const past = status === 'past';
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/event/[slug]', params: { slug: event.slug } })}
       accessibilityRole="link"
-      accessibilityLabel={`${event.name}, ${formatDate.short(event.date)}, ${locationLabel(event)}`}
-      style={({ pressed }) => [styles.card, { backgroundColor: c.surface, borderColor: c.line, opacity: pressed ? 0.85 : past ? 0.75 : 1 }]}
+      accessibilityLabel={`${event.name}, ${formatDate.short(event.date)}, ${locationLabel(event)}${past ? ', race over' : ''}`}
+      style={({ pressed }) => [styles.card, { backgroundColor: past ? c.soft : c.surface, borderColor: c.line, opacity: pressed ? 0.85 : 1 }]}
     >
       <View style={[styles.thumb, { backgroundColor: event.coverColor }]}>
         {event.poster ? <PosterFill poster={event.poster} /> : null}
+        {past ? <View style={[StyleSheet.absoluteFill, styles.pastShade]} /> : null}
         <Text style={styles.thumbDay}>{formatDate.day(event.date)}</Text>
         <Text style={styles.thumbMonth}>{formatDate.month(event.date)}</Text>
         {event.poster ? null : <Numeral text={coverNumeral(event)} size={50} strokeWidth={1} style={{ left: 6, bottom: -12 }} />}
       </View>
       <View style={styles.cardBody}>
-        <Text maxFontSizeMultiplier={1.3} style={[styles.kicker, { color: c.link }]}>
-          {formatDate.short(event.date).toUpperCase()} · {countdown(event.date, today).toUpperCase()}
-        </Text>
-        <Title>{event.name}</Title>
+        <View style={styles.kickerRow}>
+          <Text maxFontSizeMultiplier={1.3} style={[styles.kicker, { color: past ? c.text2 : c.link }]}>
+            {formatDate.short(event.date).toUpperCase()}
+            {status === 'upcoming' || status === 'this-week' ? ` · ${countdown(event.date, today).toUpperCase()}` : ''}
+          </Text>
+          {past || status === 'today' ? <StatusChip status={status} /> : null}
+        </View>
+        <Title color={past ? c.text2 : undefined}>{event.name}</Title>
         <Body size={12} color={c.text2}>
           {locationLabel(event)}
         </Body>
@@ -117,6 +123,20 @@ export function EventCard({ event, today }: { event: RaceEvent; today: string })
         <VerificationBadge event={event} today={today} />
       </View>
     </Pressable>
+  );
+}
+
+/** "Race over" (dark) or "Race day" (volt) chip. */
+export function StatusChip({ status }: { status: 'past' | 'today' | 'upcoming' | 'this-week' }) {
+  if (status !== 'past' && status !== 'today') return null;
+  const past = status === 'past';
+  return (
+    <View style={[styles.chip, { backgroundColor: past ? 'rgba(13,18,16,0.9)' : brand.volt }]}>
+      <View style={[styles.chipDot, { backgroundColor: past ? 'rgba(255,255,255,0.6)' : brand.night }]} />
+      <Text maxFontSizeMultiplier={1.2} style={[styles.chipText, { color: past ? '#fff' : brand.night }]}>
+        {past ? 'RACE OVER' : 'RACE DAY'}
+      </Text>
+    </View>
   );
 }
 
@@ -181,6 +201,11 @@ const styles = StyleSheet.create({
   thumbMonth: { fontFamily: fonts.bodyBold, fontSize: 10, color: brand.volt },
   cardBody: { flex: 1, minWidth: 0, gap: 4 },
   kicker: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.6 },
+  kickerRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
+  pastShade: { backgroundColor: 'rgba(13,18,16,0.62)' },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 5, paddingHorizontal: 6, paddingVertical: 3 },
+  chipDot: { width: 5, height: 5, borderRadius: 3 },
+  chipText: { fontFamily: fonts.bodyBold, fontSize: 10, letterSpacing: 0.6 },
   row: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginTop: 2 },
   listRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14 },
   dateCol: { width: 48, alignItems: 'center' },

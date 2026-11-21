@@ -161,7 +161,7 @@ export function RaceFinder({ events: all, builtOn, filters: f }: { events: RaceE
         <p className="max-w-3xl text-xs leading-relaxed text-text2">
           <strong className="text-text">Checked</strong> means we matched the listing to the organiser&apos;s official page.{" "}
           <strong className="text-text">Not yet verified</strong> means it came from a community calendar — check the official page
-          before paying. Past races move to &ldquo;Past races&rdquo; automatically.
+          before paying. Races move to &ldquo;Past races&rdquo; the day after they happen and stay there for a year.
         </p>
       </section>
     </div>

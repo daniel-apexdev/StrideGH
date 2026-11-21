@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import seed from "../data/events.seed.json";
 import { z } from "zod";
 import { raceEventSchema } from "@/lib/events/types";
-import { countdown, daysUntil, distanceSummary, formatPrice, isPast } from "@/lib/events/format";
+import { countdown, daysUntil, distanceSummary, formatPrice, isArchived, isPast, nextEdition, raceStatus, seriesKey } from "@/lib/events/format";
 import { filterEvents } from "@/lib/events/repository";
 
 const events = z.array(raceEventSchema).parse(seed);
@@ -12,6 +12,35 @@ describe("seed data", () => {
   it("is valid and has unique slugs", () => {
     expect(events.length).toBeGreaterThan(0);
     expect(new Set(events.map((e) => e.slug)).size).toBe(events.length);
+  });
+  it("ends each slug with the race's year when it has one, so editions link up", () => {
+    for (const e of events) {
+      const y = e.slug.match(/-((19|20)\d{2})$/)?.[1];
+      if (y) expect(`${e.slug}: ${y}`).toBe(`${e.slug}: ${e.date.slice(0, 4)}`);
+    }
+  });
+});
+
+describe("race lifecycle", () => {
+  it("moves through upcoming, this week, race day and past", () => {
+    expect(raceStatus({ date: "2026-12-25" }, TODAY)).toBe("upcoming");
+    expect(raceStatus({ date: "2026-11-24" }, TODAY)).toBe("this-week");
+    expect(raceStatus({ date: TODAY }, TODAY)).toBe("today");
+    expect(raceStatus({ date: "2026-11-16" }, TODAY)).toBe("past");
+  });
+  it("archives races a year after they happen", () => {
+    expect(isArchived({ date: "2025-11-17" }, TODAY)).toBe(false);
+    expect(isArchived({ date: "2025-11-16" }, TODAY)).toBe(true);
+    const old = { ...events[0], slug: "old-race-2025", date: "2025-01-10" };
+    expect(filterEvents([...events, old], { when: "past" }, TODAY).some((e) => e.slug === "old-race-2025")).toBe(false);
+  });
+  it("links a race to its next edition", () => {
+    expect(seriesKey("final-lap-2026")).toBe("final-lap");
+    const fl = events.find((e) => e.slug === "final-lap-2026")!;
+    const next = { ...fl, slug: "final-lap-2027", date: "2027-12-18" };
+    expect(nextEdition(fl, [...events, next])?.slug).toBe("final-lap-2027");
+    expect(nextEdition(next, [...events, next])).toBeNull();
+    expect(nextEdition(fl, events)).toBeNull();
   });
 });
 

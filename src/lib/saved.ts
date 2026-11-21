@@ -51,5 +51,7 @@ export function useSavedEvents() {
     write(next);
     return next.includes(slug);
   }, []);
-  return { saved, isSaved: (slug: string) => saved.includes(slug), toggle };
+  /** Removes several at once, e.g. "Clear past races". */
+  const remove = useCallback((slugs: string[]) => write(read().filter((s) => !slugs.includes(s))), []);
+  return { saved, isSaved: (slug: string) => saved.includes(slug), toggle, remove };
 }
