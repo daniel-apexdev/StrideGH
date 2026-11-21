@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+/* Design tokens. Light is the default; dark is applied by next-themes via data-theme="dark". */
+:root {
+  --bg: #f4f2ec;
+  --surface: #ffffff;
+  --tile: #e7e3d8;
+  --soft: #f4f2ec;
+  --text: #111714;
+  --text2: #5a635e;
+  --body: #2a322e;
+  --line: #dedad0;
+  --line2: #eceae4;
+  --hero: #0e3b2c;
+  --hero2: #14503c;
+  --hero-line: #3c6a57;
+  --on-hero: #f4f2ec;
+  --on-hero2: #cfe0d6;
+  --primary: #0e3b2c;
+  --on-primary: #f4f2ec;
+  --link: #0e3b2c;
+  --ink: #111714;
+  --on-ink: #f4f2ec;
+  --on-ink2: #b9c2bd;
+  --ok-bg: #e3f0d8;
+  --ok-fg: #1f5a2e;
+  --warn-bg: #fbefd5;
+  --warn-fg: #7a4b00;
+  --neu-bg: #eceae4;
+  --neu-fg: #3e4742;
+  --sel: #111714;
+  --on-sel: #ffffff;
+  --nav-on: #e3f0d8;
+  --nav-on-fg: #0e3b2c;
+  --outline: #111714;
+  --danger: #a3341c;
+  --icon: #0e3b2c;
+  --clay: #7a3b22;
+  --scrim: rgba(17, 23, 20, 0.55);
+  --dash: #b9b3a5;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #0b0f0d;
+  --surface: #151b18;
+  --tile: #1e2622;
+  --soft: #1e2622;
+  --text: #eef1ee;
+  --text2: #a3ada7;
+  --body: #c9d0cc;
+  --line: #2a3430;
+  --line2: #222b27;
+  --hero: #0f2a20;
+  --hero2: #163a2c;
+  --hero-line: #2f5444;
+  --on-hero: #eef1ee;
+  --on-hero2: #b7ccbf;
+  --primary: #c6f24e;
+  --on-primary: #111714;
+  --link: #c6f24e;
+  --ink: #1e2622;
+  --on-ink: #eef1ee;
+  --on-ink2: #a3ada7;
+  --ok-bg: #17301f;
+  --ok-fg: #9fd9a8;
+  --warn-bg: #3a2a0c;
+  --warn-fg: #f2c46b;
+  --neu-bg: #232b27;
+  --neu-fg: #c9d0cc;
+  --sel: #eef1ee;
+  --on-sel: #111714;
+  --nav-on: #23331f;
+  --nav-on-fg: #c6f24e;
+  --outline: #eef1ee;
+  --danger: #ff8a70;
+  --icon: #c6f24e;
+  --clay: #e39a78;
+  --scrim: rgba(0, 0, 0, 0.65);
+  --dash: #3e4a44;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-tile: var(--tile);
+  --color-soft: var(--soft);
+  --color-text: var(--text);
+  --color-text2: var(--text2);
+  --color-body: var(--body);
+  --color-line: var(--line);
+  --color-line2: var(--line2);
+  --color-hero: var(--hero);
+  --color-hero2: var(--hero2);
+  --color-hero-line: var(--hero-line);
+  --color-on-hero: var(--on-hero);
+  --color-on-hero2: var(--on-hero2);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-link: var(--link);
+  --color-ink: var(--ink);
+  --color-on-ink: var(--on-ink);
+  --color-on-ink2: var(--on-ink2);
+  --color-ok-bg: var(--ok-bg);
+  --color-ok-fg: var(--ok-fg);
+  --color-warn-bg: var(--warn-bg);
+  --color-warn-fg: var(--warn-fg);
+  --color-neu-bg: var(--neu-bg);
+  --color-neu-fg: var(--neu-fg);
+  --color-sel: var(--sel);
+  --color-on-sel: var(--on-sel);
+  --color-nav-on: var(--nav-on);
+  --color-nav-on-fg: var(--nav-on-fg);
+  --color-outline: var(--outline);
+  --color-danger: var(--danger);
+  --color-icon: var(--icon);
+  --color-clay: var(--clay);
+  --color-scrim: var(--scrim);
+  --color-dash: var(--dash);
+  /* Brand constants that stay the same in both themes */
+  --color-volt: #c6f24e;
+  --color-forest: #0e3b2c;
+  --color-night: #111714;
+
+  --font-sans: "Inter Variable", system-ui, sans-serif;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+}
+
+/* Base styles live in the base layer so Tailwind utilities can override them. */
+@layer base {
+/* One shrinkable column by default, so long text and form fields never push a grid wider than the screen.
+   Any grid-cols-* utility overrides this (utilities sit in a later layer). */
+.grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+}
+
+/* The big outlined distance numerals used on race covers */
+.outline-numeral {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.5px #c6f24e;
+  letter-spacing: -0.03em;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Admin portal: its own header, so hide the public site's header and footer. */
+body:has([data-admin]) .site-header,
+body:has([data-admin]) .site-footer {
+  display: none;
+}

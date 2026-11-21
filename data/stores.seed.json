@@ -1,0 +1,172 @@
+{
+  "stores": [
+    {
+      "slug": "osu-run-supply",
+      "name": "Osu Run Supply",
+      "demo": true,
+      "verification": "pending",
+      "description": "Running shoes, race-day apparel and hydration for Accra's road and trail runners. Shoe fitting in store.",
+      "area": "Osu",
+      "address": "Oxford Street area, Osu",
+      "city": "Accra",
+      "region": "Greater Accra",
+      "hours": "Mon–Sat · 9:00–19:00",
+      "collection": true,
+      "delivery": "Within Accra",
+      "payments": ["Mobile Money", "Card", "Cash"],
+      "phone": null,
+      "whatsapp": null,
+      "instagram": null,
+      "website": null,
+      "logo": null,
+      "cover": null,
+      "brandColor": "#C6F24E",
+      "products": [
+        {
+          "slug": "tempo-road-trainer",
+          "name": "Tempo Road Trainer",
+          "category": "Shoes",
+          "priceMinor": 145000,
+          "availability": "in_stock",
+          "sizes": ["39", "40", "41", "42", "43", "44", "45", "46"],
+          "soldOutSizes": ["45"],
+          "colours": ["Black / Volt", "Slate grey", "White"],
+          "description": "Lightweight daily trainer with a responsive foam midsole and breathable mesh upper. Good for everyday miles and 10K race day.",
+          "images": [],
+          "updatedAt": "2026-11-17"
+        },
+        {
+          "slug": "trail-hydration-vest-5l",
+          "name": "Trail Hydration Vest 5L",
+          "category": "Hydration",
+          "priceMinor": 65000,
+          "availability": "low_stock",
+          "sizes": ["S", "M", "L"],
+          "soldOutSizes": ["S"],
+          "colours": ["Black"],
+          "description": "Close-fitting 5L vest with two front flask pockets, for long runs and trail races.",
+          "images": [],
+          "updatedAt": "2026-11-18"
+        },
+        {
+          "slug": "cushion-daily-trainer",
+          "name": "Cushion Daily Trainer",
+          "category": "Shoes",
+          "priceMinor": null,
+          "availability": "ask",
+          "sizes": ["39", "40", "41", "42", "43", "44", "45", "46"],
+          "colours": ["Grey"],
+          "description": "Max-cushion trainer for easy days and long runs. The shop hasn't listed a price yet.",
+          "images": []
+        },
+        {
+          "slug": "club-training-tee",
+          "name": "Club Training Tee",
+          "category": "Apparel",
+          "priceMinor": 15000,
+          "availability": "in_stock",
+          "sizes": ["S", "M", "L", "XL"],
+          "colours": ["Forest", "White"],
+          "description": "Soft technical tee for training and group runs.",
+          "images": [],
+          "updatedAt": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "slug": "east-legon-sports-hub",
+      "name": "East Legon Sports Hub",
+      "demo": true,
+      "verification": "pending",
+      "description": "Multi-sport store with a growing running section: watches, apparel and recovery gear.",
+      "area": "East Legon",
+      "address": null,
+      "city": "Accra",
+      "region": "Greater Accra",
+      "hours": "Mon–Sun · 10:00–20:00",
+      "collection": true,
+      "delivery": "Within Accra",
+      "payments": ["Mobile Money", "Card"],
+      "logo": null,
+      "cover": null,
+      "brandColor": "#14503C",
+      "products": [
+        {
+          "slug": "featherlight-race-singlet",
+          "name": "Featherlight Race Singlet",
+          "category": "Apparel",
+          "priceMinor": 18000,
+          "availability": "in_stock",
+          "sizes": ["S", "M", "L", "XL"],
+          "colours": ["Volt", "Black"],
+          "description": "Quick-drying mesh singlet cut for hot, humid race mornings.",
+          "images": [],
+          "updatedAt": "2026-11-14"
+        },
+        {
+          "slug": "gps-run-watch",
+          "name": "GPS Run Watch",
+          "category": "Watches",
+          "priceMinor": 290000,
+          "availability": "ask",
+          "colours": ["Black"],
+          "description": "GPS running watch with pace, distance and heart rate. Ask the shop about warranty.",
+          "images": []
+        },
+        {
+          "slug": "compression-socks-2-pack",
+          "name": "Compression Socks, 2 pack",
+          "category": "Accessories",
+          "priceMinor": 14000,
+          "availability": "in_stock",
+          "sizes": ["S/M", "L/XL"],
+          "colours": ["Black"],
+          "description": "Graduated compression socks for long runs and recovery.",
+          "images": [],
+          "updatedAt": "2026-11-12"
+        }
+      ]
+    },
+    {
+      "slug": "tema-pace-co",
+      "name": "Tema Pace Co.",
+      "demo": true,
+      "verification": "pending",
+      "description": "Small independent shop for everyday runners: hydration, caps, socks and reflective kit.",
+      "area": "Community 11",
+      "address": "Community 11",
+      "city": "Tema",
+      "region": "Greater Accra",
+      "hours": "Tue–Sat · 9:00–18:00",
+      "collection": true,
+      "delivery": "Tema and Accra",
+      "payments": ["Mobile Money", "Cash"],
+      "logo": null,
+      "cover": null,
+      "brandColor": "#7A3B22",
+      "products": [
+        {
+          "slug": "soft-flask-500ml",
+          "name": "Soft Flask 500 ml",
+          "category": "Hydration",
+          "priceMinor": 12000,
+          "availability": "ask",
+          "colours": ["Clear"],
+          "description": "Collapsible soft flask that fits most vest pockets.",
+          "images": []
+        },
+        {
+          "slug": "reflective-running-cap",
+          "name": "Reflective Running Cap",
+          "category": "Accessories",
+          "priceMinor": 9500,
+          "availability": "in_stock",
+          "colours": ["White", "Black"],
+          "description": "Light cap with reflective trim for early-morning and night runs.",
+          "images": [],
+          "updatedAt": "2026-11-16"
+        }
+      ]
+    }
+  ]
+}
