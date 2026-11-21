@@ -93,7 +93,7 @@ function statusCopy(e: RaceEvent) {
     return {
       tone: 'ok' as const,
       title: `Checked against the official page · ${when}`,
-      text: "Venue, start time and prices match the organiser's own booking page.",
+      text: "The details here match the organiser's own page. Anything still unclear is noted below.",
     };
   }
   if (e.verification === 'details_tbc') {

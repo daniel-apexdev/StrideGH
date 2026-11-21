@@ -264,7 +264,8 @@
         "priceMinor": 15000,
         "note": "Sold out"
       }
-    ]
+    ],
+    "description": "The second Gold Coast Run is a 5K and 10K morning race on the University of Ghana campus, starting and finishing at the Athletic Oval. The race runs from 6:30 to 9:30 AM. Every runner gets a race kit and every finisher a medal, with vendor booths and sponsor stands at the finish. Both distances were sold out on the official page on 21 November 2026."
   },
   {
     "slug": "western-city-run-2026",
@@ -383,7 +384,28 @@
         "priceMinor": 23000,
         "note": "GHS 380 for non-Ghanaian runners"
       }
-    ]
+    ],
+    "poster": {
+      "src": "/posters/millennium-night-run-2026-route-5k.jpg",
+      "width": 851,
+      "height": 1054,
+      "alt": "Millennium Night Run 5K route map: starts in front of El-Wak Stadium, loops through Cantonments past the US Embassy, Embassy Gardens and Ghana International School, and finishes inside the stadium through Gate 2"
+    },
+    "gallery": [
+      {
+        "src": "/posters/millennium-night-run-2026-2.jpg",
+        "width": 1080,
+        "height": 694,
+        "alt": "Runners in red race vests and caps on a city road at dusk"
+      },
+      {
+        "src": "/posters/millennium-night-run-2026-3.jpg",
+        "width": 1280,
+        "height": 854,
+        "alt": "The crowd in front of the stage at last year's Millennium Night Run, under bright lights"
+      }
+    ],
+    "description": "The second Millennium Night Run, from the organisers of the Millennium Marathon: a 5K (run or walk, open to all) and a 10K through Cantonments, starting and finishing at El-Wak Stadium. The route is lit up, with live DJs and entertainment zones along the way, a medal for every finisher and an after-party. Collect your race pack at the pasta party at My Noodles Café on Saturday 5 December, 5 to 8 PM."
   },
   {
     "slug": "final-lap-2026",
@@ -430,7 +452,8 @@
         "priceMinor": 19000,
         "note": "General Admission; Lite GHS 160, packages up to GHS 750"
       }
-    ]
+    ],
+    "description": "The Runner Alliance's end-of-year run at the University of Ghana, Legon. Runners cover a kilometre for each month of the year (12 km) and walkers do 6 km, and everyone finishes together. Tickets range from Lite (GHS 160) and General Admission (GHS 190) to packages with breakfast and wellness add-ons, up to the VIR package at GHS 750."
   },
   {
     "slug": "run-the-meridian-2026",
