@@ -34,3 +34,23 @@ Tips
 - **Permission:** use photos the shop sent you or has posted itself.
 - **Alt text:** say what's in the photo (colour, angle), for screen readers.
 - Restart `npm run dev` isn't needed for new photos, but the app caches images: pull down to refresh.
+
+## Sample photos in the demo shops
+
+The demo shops' products currently use free photos from Unsplash (Unsplash License: free for
+commercial use, no permission needed). They're linked straight from Unsplash's image server, so
+there are no files here for them. They're stand-ins: swap each one for the shop's own photo when
+a real shop joins.
+
+| Product | Photo | Photographer |
+| --- | --- | --- |
+| Tempo Road Trainer | [Runner's foot crossing a white line](https://unsplash.com/photos/nph4VqOgqck) | Taylor Friehl |
+| Cushion Daily Trainer | [Shoes in front of a walk sign](https://unsplash.com/photos/Kf7us7SGwIo) | Marsha Reid |
+| Trail Hydration Vest 5L | [Man running in the woods](https://unsplash.com/photos/Ot40kMSSo1s) | Olivier Devillers |
+| Club Training Tee | [White T-shirt on a hanger](https://unsplash.com/photos/8ACmRoleM24) | Avtar Singh |
+| Featherlight Race Singlet | [Runner on a dirt road](https://unsplash.com/photos/dmDJkhPFOXo) | Ulf Meyer |
+| GPS Run Watch | [Smart watch close-up](https://unsplash.com/photos/xmslxI6UsiA) | Amanz |
+| Compression Socks, 2 pack | [Runner's legs in colourful socks](https://unsplash.com/photos/k53k6gzCllA) | Brett Wharton |
+| Reflective Running Cap | [White cap on grey](https://unsplash.com/photos/ozdzzeBu4Go) | personalgraphic.com |
+
+Soft Flask 500 ml has no photo yet: Unsplash had no free photo of a soft flask.

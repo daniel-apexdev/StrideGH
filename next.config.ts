@@ -16,7 +16,11 @@ const nextConfig: NextConfig = {
     ? { loader: "custom", loaderFile: "./src/lib/image-loader.ts" }
     : {
         // Posters uploaded to Supabase Storage (Stage 3). Local files in /public/posters need no entry.
-        remotePatterns: [{ protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" }],
+        remotePatterns: [
+          { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" },
+          // Free sample product photos for the demo shops (Unsplash License). Replace with the shops' own photos.
+          { protocol: "https", hostname: "images.unsplash.com" },
+        ],
       },
   ...(isStatic && {
     output: "export",
