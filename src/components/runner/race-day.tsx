@@ -44,7 +44,7 @@ export function RaceDayCard({ event }: { event: RaceEvent }) {
           <span className="text-sm">
             <strong>Sign in</strong> to add it to your races and log your time afterwards.
           </span>
-          <Link href={`/account?next=${encodeURIComponent(`/events/${event.slug}`)}`} className={`${btn} bg-ink text-on-ink`}>
+          <Link href={`/signin?next=${encodeURIComponent(`/events/${event.slug}`)}`} className={`${btn} bg-ink text-on-ink`}>
             Sign in or join
           </Link>
         </div>

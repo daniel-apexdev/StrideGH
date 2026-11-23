@@ -94,7 +94,7 @@ export function AccountLink() {
     : null;
   return (
     <Link
-      href="/account"
+      href={profile ? "/account" : "/signin"}
       aria-label={
         profile
           ? `Your account (${profile.name || profile.email})`
@@ -265,7 +265,7 @@ export function MobileMenu() {
             </nav>
 
             <Link
-              href="/account"
+              href={profile ? "/account" : "/signin"}
               className="mt-3 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-3.5 hover:bg-white/10"
             >
               <span

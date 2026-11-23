@@ -36,7 +36,7 @@ export function RaceResult({ event }: { event: RaceEvent }) {
       {account.status === "signed-in" ? (
         <ResultForm event={event} account={account} />
       ) : (
-        <Link href={`/account?next=${encodeURIComponent(`/events/${event.slug}`)}`} className={`${btn} self-start bg-ink text-on-ink`}>
+        <Link href={`/signin?next=${encodeURIComponent(`/events/${event.slug}`)}`} className={`${btn} self-start bg-ink text-on-ink`}>
           Sign in to log your time
         </Link>
       )}
@@ -271,7 +271,7 @@ export function RaceReviews({ event }: { event: RaceEvent }) {
           {account.status === "signed-in" ? (
             "Ran it? Be the first to say how it went."
           ) : (
-            <Link href={`/account?next=${encodeURIComponent(`/events/${event.slug}`)}`} className="font-semibold text-link">
+            <Link href={`/signin?next=${encodeURIComponent(`/events/${event.slug}`)}`} className="font-semibold text-link">
               Sign in to write the first one.
             </Link>
           )}

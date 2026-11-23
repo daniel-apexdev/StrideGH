@@ -12,24 +12,66 @@ import { EmailField, PhoneField } from "../list/contact-fields";
  * Website accounts. No passwords: we email a code to create the account (which also proves
  * the email is real), and again whenever someone signs in on a new browser.
  */
+/** Set when someone presses "Sign out", so the account page sends them home, not to sign-in. */
+let signingOut = false;
+
 export function AccountPanel() {
   const account = useAccount();
-  if (account.status === "loading") return <div className="h-72 animate-pulse rounded-2xl bg-tile" />;
-  if (account.status === "off")
-    return (
-      <Card title="Your account">
-        <p className="text-body">
-          Website accounts are being set up. Until then, saved races stay in this browser, and you can create an account in the Stride GH app.
-        </p>
-      </Card>
-    );
+  if (account.status === "off") return <AccountsOff />;
   if (account.status === "signed-in") return <SignedIn supabase={account.supabase} user={account.user} />;
-  return <SignedOut supabase={account.supabase} />;
+  // Signed out: the forms live on their own page (/signin), which sends people back here.
+  if (account.status === "signed-out") return <GoTo href={signingOut ? "/" : signInHref("/account")} />;
+  return <div className="h-72 animate-pulse rounded-2xl bg-tile" />;
 }
 
-function Card({ title, children, aside }: { title: string; children: ReactNode; aside?: ReactNode }) {
+function AccountsOff({ plain = false }: { plain?: boolean }) {
   return (
-    <section className="flex flex-col gap-5 rounded-2xl border border-line bg-surface p-6 md:p-8">
+    <Card title="Your account" plain={plain}>
+      <p className="text-body">
+        Website accounts are being set up. Until then, saved races stay in this browser, and you can create an account in the Stride GH app.
+      </p>
+    </Card>
+  );
+}
+
+/** Only internal paths, so a link can't send people to another site after signing in. */
+export function safeNext(next: string | null | undefined): string {
+  return next && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/signin") ? next : "/account";
+}
+
+/** Link to the sign-in page that comes back to `next` afterwards. */
+export function signInHref(next?: string, mode?: "create" | "signin"): string {
+  const q = new URLSearchParams();
+  if (next && next !== "/account") q.set("next", next);
+  if (mode === "signin") q.set("mode", "signin");
+  const s = q.toString();
+  return s ? `/signin?${s}` : "/signin";
+}
+
+function GoTo({ href }: { href: string }) {
+  const router = useRouter();
+  useEffect(() => router.replace(href), [router, href]);
+  return <div className="h-72 animate-pulse rounded-2xl bg-tile" />;
+}
+
+/**
+ * The create-account / sign-in forms, for the standalone /signin page. Anyone already signed in
+ * goes straight on to `next` (their account page unless they came from somewhere else).
+ */
+export function AuthForm({ next, initialMode = "create" }: { next: string; initialMode?: "create" | "signin" }) {
+  const account = useAccount();
+  useEffect(() => {
+    signingOut = false;
+  }, []);
+  if (account.status === "off") return <AccountsOff plain />;
+  if (account.status === "signed-in") return <GoTo href={next} />;
+  if (account.status === "signed-out") return <SignedOut supabase={account.supabase} next={next} initialMode={initialMode} />;
+  return <div className="h-96 animate-pulse rounded-2xl bg-tile" />;
+}
+
+function Card({ title, children, aside, plain = false }: { title: string; children: ReactNode; aside?: ReactNode; plain?: boolean }) {
+  return (
+    <section className={`flex flex-col gap-5 ${plain ? "" : "rounded-2xl border border-line bg-surface p-6 md:p-8"}`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-display text-3xl font-extrabold uppercase leading-none">{title}</h2>
         {aside}
@@ -59,8 +101,8 @@ function friendly(err: { message?: string; status?: number; code?: string } | nu
 
 type Step = { kind: "details" } | { kind: "code"; email: string; sentAt: number };
 
-function SignedOut({ supabase }: { supabase: SupabaseClient }) {
-  const [mode, setMode] = useState<"create" | "signin">("create");
+function SignedOut({ supabase, next, initialMode }: { supabase: SupabaseClient; next: string; initialMode: "create" | "signin" }) {
+  const [mode, setMode] = useState<"create" | "signin">(initialMode);
   const [step, setStep] = useState<Step>({ kind: "details" });
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -110,6 +152,7 @@ function SignedOut({ supabase }: { supabase: SupabaseClient }) {
         details={{ full_name: name.trim(), phone: formatPhone(countryByIso(country), phone) }}
         resend={() => sendCode(step.email)}
         back={() => setStep({ kind: "details" })}
+        next={next}
         busy={busy}
         sendError={error}
       />
@@ -132,17 +175,17 @@ function SignedOut({ supabase }: { supabase: SupabaseClient }) {
   );
 
   return (
-    <Card title={mode === "create" ? "Create your account" : "Sign in"}>
-      <div role="tablist" aria-label="Account" className="flex max-w-sm gap-1 rounded-xl bg-tile p-1">
+    <Card plain title={mode === "create" ? "Create your account" : "Welcome back"}>
+      <div role="tablist" aria-label="Account" className="flex gap-1 rounded-xl bg-tile p-1">
         {tab("create", "Create account")}
         {tab("signin", "Sign in")}
       </div>
-      <p className="max-w-xl text-body">
+      <p className="text-body">
         {mode === "create"
           ? "Save races across your devices and get race-day reminders. No password: we'll email you a code to confirm it's you."
           : "Enter the email you signed up with and we'll send you a sign-in code."}
       </p>
-      <form onSubmit={submitDetails} noValidate className="grid max-w-xl gap-4">
+      <form onSubmit={submitDetails} noValidate className="grid gap-4">
         {mode === "create" && (
           <div className="flex flex-col gap-1.5">
             <label htmlFor="acc-name" className={label}>
@@ -178,10 +221,24 @@ function SignedOut({ supabase }: { supabase: SupabaseClient }) {
             {error}
           </p>
         )}
-        <button type="submit" disabled={busy} className={`${primary} sm:self-start`}>
+        <button type="submit" disabled={busy} className={`${primary} w-full`}>
           {busy ? "Sending…" : "Email me a code"}
         </button>
       </form>
+      <p className="text-sm text-text2">
+        {mode === "create" ? "Already have an account? " : "New to Stride GH? "}
+        <button
+          type="button"
+          onClick={() => {
+            setMode(mode === "create" ? "signin" : "create");
+            setErrors({});
+            setError(null);
+          }}
+          className="font-semibold text-link hover:underline"
+        >
+          {mode === "create" ? "Sign in" : "Create an account"}
+        </button>
+      </p>
     </Card>
   );
 }
@@ -196,6 +253,7 @@ function CodeStep({
   details,
   resend,
   back,
+  next,
   busy,
   sendError,
 }: {
@@ -206,6 +264,7 @@ function CodeStep({
   details: { full_name: string; phone: string };
   resend: () => void;
   back: () => void;
+  next: string;
   busy: boolean;
   sendError: string | null;
 }) {
@@ -235,17 +294,16 @@ function CodeStep({
     if (creating && (!m.full_name || !m.phone)) {
       await supabase.auth.updateUser({ data: { full_name: m.full_name || details.full_name, phone: m.phone || details.phone } });
     }
-    // Came here from a race page ("Sign in to log your time")? Go back there.
-    const next = new URLSearchParams(window.location.search).get("next");
-    if (next && next.startsWith("/") && !next.startsWith("//")) router.push(next);
+    // On to their account page, or back to the race page they came from.
+    router.replace(next);
   }
 
   return (
-    <Card title="Check your email">
-      <p className="max-w-xl text-body">
+    <Card plain title="Check your email">
+      <p className="text-body">
         We sent a code to <strong>{email}</strong>. It works for 1 hour. Can&apos;t see it? Check your spam or promotions folder.
       </p>
-      <form onSubmit={verify} className="grid max-w-sm gap-4">
+      <form onSubmit={verify} className="grid gap-4">
         <label htmlFor="acc-code" className={label}>
           Code
         </label>
@@ -380,7 +438,15 @@ function SignedIn({ supabase, user }: { supabase: SupabaseClient; user: User }) 
           <button type="button" onClick={() => (setNotice(null), setEditing(true))} className={secondary}>
             Edit details
           </button>
-          <button type="button" onClick={() => supabase.auth.signOut()} className={secondary}>
+          <button
+            type="button"
+            onClick={() => {
+              // After signing out, head home rather than to the sign-in page.
+              signingOut = true;
+              void supabase.auth.signOut();
+            }}
+            className={secondary}
+          >
             Sign out
           </button>
         </div>

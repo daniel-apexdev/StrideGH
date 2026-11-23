@@ -178,7 +178,10 @@ a {
 
 /* Admin portal: its own header, so hide the public site's header and footer. */
 body:has([data-admin]) .site-header,
-body:has([data-admin]) .site-footer {
+body:has([data-admin]) .site-footer,
+/* The sign-in page (src/app/signin) is a standalone form screen. */
+body:has([data-auth]) .site-header,
+body:has([data-auth]) .site-footer {
   display: none;
 }
 

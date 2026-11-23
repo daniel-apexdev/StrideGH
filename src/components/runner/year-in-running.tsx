@@ -116,7 +116,7 @@ function Intro() {
           Tell us which races you&apos;re running and log your times. Stride GH adds them up: races, kilometres, best times and the
           places you raced. Share it when the year&apos;s done.
         </p>
-        <Link href="/account?next=%2Fyear" className="inline-flex h-12 items-center self-start rounded-xl bg-primary px-5 font-bold text-on-primary">
+        <Link href="/signin?next=%2Fyear" className="inline-flex h-12 items-center self-start rounded-xl bg-primary px-5 font-bold text-on-primary">
           Sign in or create an account
         </Link>
         <p className="text-sm text-text2">Free, with an email code. No password.</p>
