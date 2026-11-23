@@ -166,6 +166,21 @@ drop policy if exists "Runners delete their own review" on public.race_reviews;
 create policy "Runners delete their own review" on public.race_reviews
   for delete to authenticated using (user_id = auth.uid());
 
+-- Table permissions for the website (newer Supabase projects don't grant these automatically).
+-- Row Level Security above still decides which rows each person can see or change.
+grant usage on schema public to anon, authenticated, service_role;
+grant select, insert, update, delete on public.race_entries to authenticated;
+grant insert on public.race_reminders to anon;
+grant select, insert, delete on public.race_reminders to authenticated;
+grant insert on public.race_alerts to anon;
+grant select, insert, update, delete on public.race_alerts to authenticated;
+grant insert on public.app_waitlist to anon, authenticated;
+grant select on public.race_reviews to anon;
+grant select, insert, update, delete on public.race_reviews to authenticated;
+-- The daily email job (service role) reads and updates these.
+grant all on public.race_entries, public.race_reminders, public.race_alerts, public.race_alerts_sent,
+  public.app_waitlist, public.race_reviews to service_role;
+
 -- "Stop these emails" from the link in a reminder or alert. Works without signing in:
 -- the token is the proof. Returns what was stopped.
 create or replace function public.unsubscribe(p_token uuid) returns text
