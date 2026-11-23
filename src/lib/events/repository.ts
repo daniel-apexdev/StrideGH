@@ -50,7 +50,7 @@ function fromRow(row: EventRow): RaceEvent {
     feeSummary: row.fee_summary,
     feeKind: row.fee_kind,
     currency: row.currency,
-    registration: { method: row.registration_method, url: row.registration_url, note: row.registration_note },
+    registration: { method: row.registration_method, url: row.registration_url, note: row.registration_note, closes: null },
     highlights: row.highlights ?? [],
     walkerFriendly: row.walker_friendly,
     verification: row.verification,

@@ -68,7 +68,7 @@ export function submissionToEvent(
     ? new Date(r.deadline + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "UTC" })
     : null;
   const deadline = closes ? ` Registration closes ${closes}${r.deadlineMayChange ? " (the organiser says this may change)" : ""}.` : "";
-  const registration: RaceEvent["registration"] =
+  const how: Omit<RaceEvent["registration"], "closes"> =
     r.method === "url"
       ? { method: "url", url: r.value, note: deadline.trim() || null }
       : r.method === "ussd"
@@ -80,6 +80,8 @@ export function submissionToEvent(
               url: null,
               note: `Registration hasn't opened yet. Check back closer to race day.${deadline}`,
             };
+  // The closing date also drives "registration closes soon" reminder emails.
+  const registration: RaceEvent["registration"] = { ...how, closes: r.deadline ?? null };
 
   const highlights = [
     ...d.included.map((k) => includedLabels[k]),

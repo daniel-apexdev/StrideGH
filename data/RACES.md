@@ -30,8 +30,8 @@ The fields that matter most:
 - `date`: `YYYY-MM-DD`. `startTime`: `HH:MM` (24-hour) or `null`.
 - `verification`: `"verified"` once you've checked it with the organiser's own page,
   `"details_tbc"` while details are missing, otherwise `"unverified"`.
-- `registration`: `{ "method": "url", "url": "https://…", "note": null }`, or `"phone"` / `"ussd"` with the number in `note`,
-  or `"none"` if it isn't open yet.
+- `registration`: `{ "method": "url", "url": "https://…", "note": null, "closes": "2026-12-05" }`, or `"phone"` / `"ussd"` with the number in `note`,
+  or `"none"` if it isn't open yet. `closes` (optional) is the last day to register: runners with reminders get an email 3 days before.
 - `distances`: one entry per distance. `category` is `5K`, `10K`, `Half`, `Marathon` or `Other`;
   `priceMinor` is the fee in pesewas (GHS 150 → `15000`), `0` for free, `null` if not published.
 - `poster` and `gallery`: save the image in `public/posters/`, then run
@@ -39,6 +39,21 @@ The fields that matter most:
   See [public/posters/README.md](../public/posters/README.md).
 
 Then run `npm test`. It checks every race and tells you the field name if something's wrong.
+
+## After race day: results and photos
+
+When the organiser publishes results or photos, add a `recap` to the race:
+
+```json
+"recap": {
+  "resultsUrl": "https://organiser.example/results-2026",
+  "photosUrl": "https://photos.example/album",
+  "note": "Over 2,000 runners finished. Congratulations to everyone who ran!",
+  "photos": []
+}
+```
+
+All four are optional. `photos` takes images like `gallery` (save them in `public/posters/`). The race page shows them under **Results & photos**, and runners who asked for reminders get an email a day or two after the race pointing to them.
 
 ## Next year's edition
 

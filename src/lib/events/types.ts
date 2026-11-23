@@ -42,6 +42,12 @@ export const raceEventSchema = z.object({
     method: z.enum(registrationMethods),
     url: z.string().url().nullable(),
     note: z.string().nullable(),
+    /** Last day to register, YYYY-MM-DD, if the organiser has said. Used for "closes soon" reminders. */
+    closes: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .nullable()
+      .default(null),
   }),
   highlights: z.array(z.string()),
   walkerFriendly: z.boolean().nullable(),
@@ -54,6 +60,19 @@ export const raceEventSchema = z.object({
   /** The organiser's own description of the race (from a submission). null for races we listed ourselves. */
   description: z.string().nullable().default(null),
   distances: z.array(distanceSchema).min(1),
+  /**
+   * After race day: links to the official results and photos, and a few photos to show on the
+   * race page. Fill in once the organiser publishes them (see data/RACES.md).
+   */
+  recap: z
+    .object({
+      resultsUrl: z.string().url().nullable().default(null),
+      photosUrl: z.string().url().nullable().default(null),
+      photos: z.array(posterSchema).default([]),
+      note: z.string().nullable().default(null),
+    })
+    .nullable()
+    .default(null),
 });
 
 export type Distance = z.infer<typeof distanceSchema>;

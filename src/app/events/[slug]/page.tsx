@@ -7,6 +7,8 @@ import { RaceCard } from "@/components/events/event-card";
 import { RegisterBar, RegisterPanel } from "@/components/events/register-bar";
 import { Breadcrumbs, Container, SectionHeading } from "@/components/page";
 import { PhotoCarousel, PosterFrame } from "@/components/events/poster-gallery";
+import { RaceResult, RaceReviews } from "@/components/runner/race-after";
+import { RaceDayCard } from "@/components/runner/race-day";
 import { SaveButton } from "@/components/events/save-button";
 import { VerificationBadge } from "@/components/events/verification-badge";
 import { getAllEvents, getEventBySlug, getToday } from "@/lib/events/repository";
@@ -184,6 +186,51 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
               <span className="text-sm leading-relaxed">{status.text}</span>
             </div>
           </div>
+
+          {past ? (
+            <>
+              <Section title="Results & photos">
+                {event.recap && (event.recap.resultsUrl || event.recap.photosUrl || event.recap.photos.length) ? (
+                  <div className="flex flex-col gap-5">
+                    {event.recap.note && <p className="text-[17px] leading-relaxed text-body">{event.recap.note}</p>}
+                    <div className="flex flex-wrap gap-3">
+                      {event.recap.resultsUrl && (
+                        <a
+                          href={event.recap.resultsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex h-12 items-center gap-2 rounded-xl bg-primary px-5 font-bold text-on-primary"
+                        >
+                          <Icon name="flag" size={18} /> Official results <Icon name="external" size={16} />
+                        </a>
+                      )}
+                      {event.recap.photosUrl && (
+                        <a
+                          href={event.recap.photosUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex h-12 items-center gap-2 rounded-xl border border-line bg-surface px-5 font-bold hover:bg-tile"
+                        >
+                          Full photo album <Icon name="external" size={16} />
+                        </a>
+                      )}
+                    </div>
+                    {event.recap.photos.length > 0 && (
+                      <PhotoCarousel photos={event.recap.photos} images={event.recap.photos} raceName={event.name} />
+                    )}
+                  </div>
+                ) : (
+                  <p className="rounded-2xl border border-dashed border-dash p-5 text-text2">
+                    Results and race photos aren&apos;t up yet. We add them here as soon as the organiser publishes them.
+                  </p>
+                )}
+              </Section>
+              <RaceResult event={event} />
+              <RaceReviews event={event} />
+            </>
+          ) : (
+            <RaceDayCard event={event} />
+          )}
 
           {event.description && (
             <Section title="About this race">

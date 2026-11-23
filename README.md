@@ -95,6 +95,31 @@ One-time setup (about 15 minutes):
 
 Adding these keys does **not** move your races and shops into Supabase: they keep coming from `data/*.seed.json` unless you also set `DATA_SOURCE=supabase` (see "Connect Supabase" below).
 
+### Runner features (needs the step above)
+
+Once accounts are on, the website also has:
+
+- **I'm running this** on every upcoming race: it goes into the runner's races, with reminder emails.
+- **Remind me** on every upcoming race, for anyone (no account needed): an email 3 days before registration closes (if the race has a `registration.closes` date), a week before, the day before with a checklist, and after the race with results.
+- **New-race alerts** (Races page and Account): pick distances and towns, get an email when a matching race is listed.
+- **After the race:** results and photos (from `recap` in `data/events.seed.json`), "Did you run it?" to log a finish time, and runners' reviews.
+- **Race history and best times** on the Account page, and **Year in running** (`/year`): a card runners can download or share.
+- **The app waiting list** on the home page.
+
+To switch them on:
+
+1. In Supabase → **SQL Editor**, paste and run `supabase/migrations/20261123000000_runner_features.sql`. It's safe to run again.
+2. To send the emails, add the daily email job: put `notifications.yml` in `.github/workflows/` next to `deploy-pages.yml`, then in GitHub → **Settings → Secrets and variables → Actions**:
+   - **Secrets:** `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API; this one is private, so only ever a secret), `GMAIL_USER`, `GMAIL_APP_PASSWORD`.
+   - **Variable:** `SITE_URL` = `https://daniel-apexdev.github.io/StrideGH`.
+3. Try it: **Actions → Send race reminders and alerts → Run workflow**, tick **Dry run**. The log lists who would get what, and nothing is sent. It then runs by itself every morning at about 6:40.
+
+On your computer, `npm run notify -- --dry` does the same, reading `.env.local` (add `SUPABASE_SERVICE_ROLE_KEY` and `SITE_URL` there).
+
+Gmail sends up to about 500 emails a day. Past that, switch the job to a sending service; it's one function in `scripts/send-notifications.mjs`.
+
+Waiting-list emails are in Supabase → **Table Editor → app_waitlist**. Export them as CSV when the app launches.
+
 ### In the phone app
 
 The app's *Create account* and *Sign in* screens talk to the website's API (`/api/auth/start`, `/api/auth/verify`, `/api/auth/me`, `/api/auth/signout`). `SESSION_SECRET` in `.env.local` is required.

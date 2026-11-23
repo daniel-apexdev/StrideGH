@@ -3,11 +3,16 @@ import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { Container, PageHero } from "@/components/page";
 import { AccountPanel } from "@/components/account/account-panel";
+import { RunnerDashboard } from "@/components/runner/dashboard";
 import { ThemeSelector } from "@/components/theme-toggle";
+import { citiesOf } from "@/lib/events/filter";
+import { getAllEvents, getToday } from "@/lib/events/repository";
 
 export const metadata: Metadata = { title: "Your account" };
 
-export default function AccountPage() {
+export default async function AccountPage() {
+  const [all, today] = await Promise.all([getAllEvents(), getToday()]);
+  const races = all.map((e) => ({ slug: e.slug, name: e.name, date: e.date }));
   return (
     <main>
       <PageHero kicker="ACCOUNT & SETTINGS" title="Your account" crumbs={[{ href: "/", label: "Home" }, { label: "Account" }]} />
@@ -15,6 +20,8 @@ export default function AccountPage() {
         <div className="md:col-span-2">
           <AccountPanel />
         </div>
+
+        <RunnerDashboard races={races} cities={citiesOf(all)} builtOn={today} />
 
         <section className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-6">
           <h2 className="font-display text-2xl font-extrabold uppercase">Appearance</h2>

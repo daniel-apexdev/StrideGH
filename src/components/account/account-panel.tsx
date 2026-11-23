@@ -1,6 +1,7 @@
 "use client";
 
 import type { SupabaseClient, User } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { profileOf, useAccount } from "@/lib/accounts/use-account";
 import { countryByIso, emailProblem, formatPhone, parsePhone, phoneProblem } from "@/lib/contact";
@@ -208,6 +209,7 @@ function CodeStep({
   busy: boolean;
   sendError: string | null;
 }) {
+  const router = useRouter();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
@@ -233,6 +235,9 @@ function CodeStep({
     if (creating && (!m.full_name || !m.phone)) {
       await supabase.auth.updateUser({ data: { full_name: m.full_name || details.full_name, phone: m.phone || details.phone } });
     }
+    // Came here from a race page ("Sign in to log your time")? Go back there.
+    const next = new URLSearchParams(window.location.search).get("next");
+    if (next && next.startsWith("/") && !next.startsWith("//")) router.push(next);
   }
 
   return (

@@ -28,7 +28,7 @@ export function PosterFrame({
       <button
         type="button"
         onClick={() => setOpen(0)}
-        aria-label={`View poster full size: ${poster.alt}`}
+        aria-label={`${poster.alt}. Opens full screen.`}
         className="group relative block aspect-[4/5] w-full overflow-hidden rounded-2xl bg-black/25 shadow-[0_24px_50px_rgba(0,0,0,0.4)]"
       >
         <Image
@@ -39,9 +39,6 @@ export function PosterFrame({
           sizes="(max-width: 1024px) 90vw, 460px"
           className={`object-contain ${muted ? "brightness-75 grayscale" : ""}`}
         />
-        <span className="absolute bottom-3 right-3 flex h-9 items-center gap-1.5 rounded-full bg-black/60 px-3 text-xs font-semibold text-white opacity-90 backdrop-blur transition group-hover:opacity-100">
-          <Icon name="external" size={14} /> View full size
-        </span>
       </button>
       <Lightbox images={images} start={open} onClose={() => setOpen(null)} label={`${raceName} images`} />
     </div>

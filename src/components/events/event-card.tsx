@@ -8,17 +8,19 @@ import { VerificationBadge } from "./verification-badge";
 export function RaceCard({ event, today, priority }: { event: RaceEvent; today: string; priority?: boolean }) {
   const status = raceStatus(event, today);
   const past = status === "past";
+  // A container query sizes the card by its own width: compact in the two-up phone grid,
+  // roomier wherever it gets more space (one column, or the desktop grid).
   return (
     <Link
       href={`/events/${event.slug}`}
       aria-label={past ? `${event.name} (race over)` : undefined}
-      className={`group flex flex-col overflow-hidden rounded-2xl border transition ${
+      className={`group @container flex flex-col overflow-hidden rounded-2xl border transition ${
         past
           ? "border-line bg-soft hover:border-line2"
           : "border-line bg-surface hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(0,0,0,0.12)]"
       }`}
     >
-      <div className={`relative aspect-[4/3] overflow-hidden ${past ? "grayscale" : ""}`} style={{ background: event.coverColor }}>
+      <div className={`relative aspect-[4/5] overflow-hidden @xs:aspect-[4/3] ${past ? "grayscale" : ""}`} style={{ background: event.coverColor }}>
         {event.poster ? (
           <>
             <Image
@@ -26,32 +28,34 @@ export function RaceCard({ event, today, priority }: { event: RaceEvent; today: 
               alt=""
               fill
               priority={priority}
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 360px"
               className="object-cover transition duration-500 group-hover:scale-[1.03]"
             />
             <span aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent" />
           </>
         ) : (
-          <span aria-hidden className="outline-numeral absolute -bottom-10 -right-3 text-[170px] opacity-80">
+          <span aria-hidden className="outline-numeral absolute -bottom-6 -right-2 text-[110px] opacity-80 @xs:-bottom-10 @xs:-right-3 @xs:text-[170px]">
             {coverNumeral(event)}
           </span>
         )}
-        <span className="absolute left-3 top-3 flex flex-col items-center rounded-[10px] bg-white px-2.5 py-1.5 leading-none text-night shadow">
-          <span className="text-[10px] font-bold text-[#5a635e]">{formatDate.month(event.date)}</span>
-          <span className="font-display text-[26px] font-extrabold">{formatDate.day(event.date)}</span>
-          <span className="text-[10px] font-bold text-[#5a635e]">{formatDate.weekday(event.date)}</span>
+        <span className="absolute left-2 top-2 flex flex-col items-center rounded-lg bg-white px-2 py-1 leading-none text-night shadow @xs:left-3 @xs:top-3 @xs:rounded-[10px] @xs:px-2.5 @xs:py-1.5">
+          <span className="text-[9px] font-bold text-[#5a635e] @xs:text-[10px]">{formatDate.month(event.date)}</span>
+          <span className="font-display text-[20px] font-extrabold @xs:text-[26px]">{formatDate.day(event.date)}</span>
+          <span className="text-[9px] font-bold text-[#5a635e] @xs:text-[10px]">{formatDate.weekday(event.date)}</span>
         </span>
         {past && <span aria-hidden className="absolute inset-0 bg-black/45" />}
-        <StatusChip status={status} date={event.date} today={today} className="absolute right-3 top-3" />
+        <StatusChip status={status} date={event.date} today={today} className="absolute bottom-2 left-2 @xs:bottom-auto @xs:left-auto @xs:right-3 @xs:top-3" />
       </div>
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <span className={`font-display text-[24px] font-bold leading-[1.02] group-hover:underline ${past ? "text-text2" : ""}`}>{event.name}</span>
-        <span className="text-[13px] text-text2">{locationLabel(event)}</span>
-        <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
-          <span className="rounded-md bg-soft px-2 py-1 text-xs font-bold">{distanceSummary(event.distances)}</span>
-          <span className="text-[13px] font-semibold">{feeLabel(event)}</span>
+      <div className="flex flex-1 flex-col gap-1.5 p-3 @xs:gap-2 @xs:p-4">
+        <span className={`font-display text-[19px] font-bold leading-[1.02] group-hover:underline @xs:text-[24px] ${past ? "text-text2" : ""}`}>{event.name}</span>
+        <span className="line-clamp-1 text-xs text-text2 @xs:line-clamp-none @xs:text-[13px]">{locationLabel(event)}</span>
+        <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-1">
+          <span className="rounded-md bg-soft px-1.5 py-0.5 text-[11px] font-bold @xs:px-2 @xs:py-1 @xs:text-xs">{distanceSummary(event.distances)}</span>
+          <span className="text-xs font-semibold @xs:text-[13px]">{feeLabel(event)}</span>
         </div>
-        <VerificationBadge event={event} today={today} />
+        <span className="hidden @xs:contents">
+          <VerificationBadge event={event} today={today} />
+        </span>
       </div>
     </Link>
   );

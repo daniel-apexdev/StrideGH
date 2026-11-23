@@ -11,6 +11,7 @@
     "db:seed-sql": "node scripts/generate-seed.mjs",
     "race:next": "node scripts/next-edition.mjs",
     "race:image": "node scripts/add-race-image.mjs",
+    "notify": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/send-notifications.mjs",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "mobile": "npm --prefix mobile start",

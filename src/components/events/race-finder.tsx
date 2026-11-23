@@ -141,7 +141,7 @@ export function RaceFinder({ events: all, builtOn, filters: f }: { events: RaceE
           </Link>
         </div>
         {list.length > 0 ? (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">
             {list.map((e, i) => (
               <RaceCard key={e.slug} event={e} today={today} priority={i < 3} />
             ))}

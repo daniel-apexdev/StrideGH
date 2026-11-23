@@ -20,6 +20,16 @@ export function profileOf(user: User): Profile {
   };
 }
 
+const claimed = new Set<string>();
+/** Remembered for the browser tab, so it runs once per visit rather than on every page. */
+function alreadyClaimed(id: string): boolean {
+  try {
+    if (sessionStorage.getItem("stride-gh-claimed") === id) return true;
+    sessionStorage.setItem("stride-gh-claimed", id);
+  } catch {}
+  return false;
+}
+
 /**
  * The visitor's account. Loads Supabase only once the page is on screen, so pages that
  * don't need it stay light.
@@ -33,8 +43,18 @@ export function useAccount(): AccountState {
       const supabase = getBrowserSupabase();
       if (cancelled) return;
       if (!supabase) return setState({ status: "off" });
-      const set = (user: User | null | undefined) =>
-        !cancelled && setState(user ? { status: "signed-in", supabase, user } : { status: "signed-out", supabase });
+      const set = (user: User | null | undefined) => {
+        if (cancelled) return;
+        setState(user ? { status: "signed-in", supabase, user } : { status: "signed-out", supabase });
+        // Link reminders and alerts this person set up before signing in (same email). Once per visit.
+        if (user && !claimed.has(user.id) && !alreadyClaimed(user.id)) {
+          claimed.add(user.id);
+          void supabase.rpc("claim_my_subscriptions").then(
+            () => {},
+            () => {},
+          );
+        }
+      };
       const { data } = await supabase.auth.getSession();
       set(data.session?.user);
       const sub = supabase.auth.onAuthStateChange((_event, session) => set(session?.user));

@@ -181,3 +181,23 @@ body:has([data-admin]) .site-header,
 body:has([data-admin]) .site-footer {
   display: none;
 }
+
+/* Phone menu: fades and slides in. */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.menu-in {
+  animation: menu-in 180ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-in {
+    animation: none;
+  }
+}

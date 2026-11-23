@@ -4,6 +4,8 @@ import { Icon } from "@/components/icon";
 import { RaceCard } from "@/components/events/event-card";
 import { VerificationBadge } from "@/components/events/verification-badge";
 import { Container, SectionHeading } from "@/components/page";
+import { AppWaitlist } from "@/components/runner/signups";
+import { accountsOn } from "@/lib/accounts/configured";
 import { ProductCard } from "@/components/shop/shop-bits";
 import { citiesOf, getAllEvents, getToday, getUpcomingEvents } from "@/lib/events/repository";
 import { countdown, coverNumeral, distanceSummary, feeLabel, formatDate, locationLabel } from "@/lib/events/format";
@@ -174,6 +176,22 @@ export default async function HomePage() {
             {products.slice(0, 4).map((p) => (
               <ProductCard key={`${p.store.slug}/${p.slug}`} product={p} showStore />
             ))}
+          </div>
+        </Container>
+      )}
+
+      {/* App waiting list */}
+      {accountsOn && (
+        <Container as="section" className="pt-16">
+          <div className="grid items-center gap-8 overflow-hidden rounded-3xl bg-hero p-8 text-on-hero md:grid-cols-[1.1fr_1fr] md:p-12">
+            <div className="flex flex-col gap-4">
+              <span className="text-xs font-bold tracking-[0.14em] text-volt">COMING SOON · THE STRIDE GH APP</span>
+              <h2 className="font-display text-4xl font-extrabold uppercase leading-[0.95] md:text-5xl">Your races in your pocket</h2>
+              <p className="max-w-lg text-on-hero2">
+                Race-day reminders on your phone, your race history and times, and new races near you. Same account as the website.
+              </p>
+            </div>
+            <AppWaitlist />
           </div>
         </Container>
       )}

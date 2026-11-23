@@ -24,6 +24,7 @@ const columns = [
     links: [
       ["/account", "Your account"],
       ["/events?when=past", "Past races"],
+      ["/year", "Year in running"],
     ],
   },
 ] as const;

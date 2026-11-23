@@ -107,6 +107,7 @@ describe("approving a submission", () => {
     expect(e.registration).toEqual({
       method: "url",
       url: "https://example.com/register",
+      closes: "2099-03-01",
       note: "Registration closes 1 March (the organiser says this may change).",
     });
     expect(e.highlights).toEqual(["Race bib", "Finisher medal", "Minimum age 12"]);
